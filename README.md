@@ -15,4 +15,4 @@ FastLED
 ESPAsyncE131
 ESP8266WiFi
 
-Thanks to the original author, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!
+Thanks to the original authors, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!
