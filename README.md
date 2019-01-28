@@ -8,6 +8,8 @@ By selecting the additional effect "E131", you can drive the LEDs using E1.31 su
 
 Additionally, MQTT discovery for Home Assistant is incorporated, as well as last will and testament messages.
 
+I have also included the option to use the Home Assistant "white value" slider for the effects speed
+
 To set up, edit the config.h file to suit your setup, and upload via the Arduino IDE.
 
 Additional dependancies which you will require are:
@@ -16,3 +18,5 @@ ESPAsyncE131
 ESP8266WiFi
 
 Thanks to the original authors, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!
+
+The example.yaml is provided if you choose not to use discovery
