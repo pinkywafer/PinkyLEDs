@@ -587,7 +587,7 @@ void loop() {
 
       if (setEffect == "Sinelon") {
         fadeToBlackBy( leds, NUM_LEDS, 20);
-        int pos = beatsin16(13, 0, NUM_LEDS);
+        int pos = beatsin16(13, 0, NUM_LEDS - 1);
         leds[pos] += CRGB(Rcolor, Gcolor, Bcolor);
       }
 
@@ -595,7 +595,7 @@ void loop() {
         fadeToBlackBy( leds, NUM_LEDS, 20);
         byte dothue = 0;
         for ( int i = 0; i < 8; i++) {
-          leds[beatsin16(i + 7, 0, NUM_LEDS)] |= CRGB(Rcolor, Gcolor, Bcolor);
+          leds[beatsin16(i + 7, 0, NUM_LEDS - 1)] |= CRGB(Rcolor, Gcolor, Bcolor);
           dothue += 32;
         }
       }
@@ -751,18 +751,18 @@ void loop() {
         }
         static int cyclonPos = 0;
         if (forwards) {
-          if (cyclonPos <= NUM_LEDS){
+          if (cyclonPos < NUM_LEDS - 1){
             leds[cyclonPos] = CHSV(cyclonHue++, 255,255);
             cyclonPos++;
           } else {
-            forwards=false;
+            forwards = false;
           }
         } else {
           if (cyclonPos >= 0) {
             leds[cyclonPos] = CHSV(cyclonHue++, 255,255);
             cyclonPos--;
           } else {
-            forwards=true;
+            forwards = true;
           }
         }
       }
@@ -1032,6 +1032,12 @@ void handleEffectButton() {
     if (effectButtonState != lastEffectButtonState) { // button state has changed
       if (effectButtonState == LOW) { // button is pressed
         setEffect = effectList[nextEffect];
+        if (setEffect == "Twinkle") {
+          twinklecounter = 0;
+        }
+        if (setEffect == "Lightning") {
+          twinklecounter = 0;
+        }
         if (nextEffect + 1 >= (sizeof(effectList) / 20)){
           nextEffect = 0;
         } else {
