@@ -2,7 +2,8 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#define FASTLED_INTERRUPT_RETRY_COUNT 0
+#define FASTLED_ALLOW_INTERRUPTS 0
+// #define FASTLED_INTERRUPT_RETRY_COUNT 0
 #include <FastLED.h>
 #include <ArduinoOTA.h>
 #include <ESPAsyncE131.h>
