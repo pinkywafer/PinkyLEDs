@@ -827,7 +827,7 @@ void loop() {
       FastLED.delay(10);
     } else {
       if (animationspeed > 0 && animationspeed < 255) {  //Sets animation speed based on receieved value
-        FastLED.delay(1500 / animationspeed);
+        FastLED.delay((255 - (animationspeed - 1)) * 6);
       } else if (animationspeed == 0) {
         FastLED.delay(1600);
       }
