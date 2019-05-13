@@ -8,6 +8,10 @@
 #include <ArduinoOTA.h>
 #include <ESPAsyncE131.h>
 
+#if ARDUINOJSON_VERSION_MAJOR!=6 || ARDUINOJSON_VERSION_MINOR<1
+#error ArduinoJson 6.1+ is required
+#endif
+
 int OTAport = 8266;
 
 const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,255,0},
@@ -323,20 +327,14 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  char message[length + 1];
-  for (int i = 0; i < length; i++) {
-    message[i] = (char)payload[i];
-  }
   if (String(topic) == mqttstate){
       client.unsubscribe(mqttstate);
   }
-  message[length] = '\0';
-  Serial.println(message);
 
-  StaticJsonBuffer<250> jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(message);
-
-  if (!root.success()) {
+  StaticJsonDocument<250> root;
+  DeserializationError jsonError = deserializeJson(root, payload, length);
+  
+  if (jsonError) {
     Serial.println("parseObject() failed");
   } else {
     if (root.containsKey("state")) {
@@ -382,12 +380,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void publishState() {
-  StaticJsonBuffer<250> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
+  StaticJsonDocument<250> root;
 
   root["state"] = setPower; 
   
-  JsonObject& color = root.createNestedObject("color");
+  JsonObject color = root.createNestedObject("color");
   color["r"] = setRed;
   color["g"] = setGreen;
   color["b"] = setBlue;
@@ -398,9 +395,7 @@ void publishState() {
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
   }
-
-  char buffer[root.measureLength() + 1];
-  root.printTo(buffer, sizeof(buffer));
+  char buffer[250];
   client.publish(mqttstate, buffer, true);
 }
 
