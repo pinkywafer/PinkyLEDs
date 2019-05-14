@@ -22,16 +22,12 @@ To set up, edit the config.h file to suit your setup, and upload via the Arduino
 It should be possible to run this on other ESP8266 boards, but other changes may be needed
 
 Additional libraries which you will require are:
-ArduinoJson version 5 (I'm using version 5.13.5) (Will not work with version 6)
-ESP8266WiFi from ESP8266 (installed to arduinoIDE in boards manager)
-PubSubClient version 2.7
-FastLED version 3.1+ (I'm currently using 3.2.6)
-ArduinoOTA.h
-ESPAsyncE131 version 1
+* ESP8266WiFi from ESP8266 (installed to arduinoIDE in boards manager)
+* ArduinoJson version 5 (I'm using version 5.13.5) (Will not work with version 6)
+* PubSubClient version 2.7
+* FastLED version 3.1+ (I'm currently using 3.2.6)
+* ESPAsyncE131 version 1
 
-ArduinoJson version 5 (I'm using version 5.13.5) (migration to version 6 not yet complete)
-PubSubClient version 2.7
-ESPAsyncE131 version 1.0
 Thanks to the original authors, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!
 
 The example.yaml is provided as a guide if you choose not to use discovery
