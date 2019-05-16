@@ -1,6 +1,7 @@
 #define DEVICE_NAME "PinkyLED1" // Unique name for this device
 #define USE_DISCOVERY // remove if you do not want to use auto-discovery
 #define USE_WHITE_BALANCE_FOR_SPEED // remove if you do not want to use Home Assistant's built in white balance slider for animation speed
+#define ENABLE_E131 // remove if you do not want to use E1.31
 
 #define wifi_ssid "yourSSID" // your WIFI SSID
 #define wifi_password "yourWiFiPassword" // your WIFI Password

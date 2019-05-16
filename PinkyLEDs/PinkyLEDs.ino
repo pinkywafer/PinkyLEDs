@@ -5,8 +5,10 @@
 // #define FASTLED_INTERRUPT_RETRY_COUNT 0
 #include <FastLED.h>
 #include <ArduinoOTA.h>
-#include <ESPAsyncE131.h>
 #include "config.h"
+#ifdef ENABLE_E131
+  #include <ESPAsyncE131.h>
+#endif
 
 int OTAport = 8266;
 
@@ -114,7 +116,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 
 #ifdef USE_DISCOVERY
   #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
-  #define DISCOVERY_PAYLOAD "{ \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
+  #define DISCOVERY_BASE "{ \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
         "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
@@ -122,11 +124,19 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
         "\"Christmas\", \"Candy Cane\", \"Holly Jolly\", \"Valentine\", \"Lovey Day\", \"St Patty\", \"Easter\", " \
         "\"USA\", \"Independence\", \"Go Blue\", \"Hail\", \"Touchdown\", \"Halloween\", \"Punkin\", \"Thanksgiving\", " \
         "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
-        "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\",\"E131\"] }" 
- #endif
+        "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
+  #ifdef ENABLE_E131
+    #define DISCOVERY_E131 ",\"E131\"] }"
+  #else
+    #define DISCOVERY_E131 ""
+  #endif
+  #define DISCOVERY_PAYLOAD DISCOVERY_BASE DISCOVERY_E131 "] }" 
 
-#if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
-#warning "Requires FastLED 3.1 or later; check github for latest code."
+#endif
+#ifdef ENABLE_E131
+  #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
+    #warning "Requires FastLED 3.1 or later; check github for latest code."
+  #endif
 #endif
 
 char setRed = 0;
@@ -220,7 +230,9 @@ char message_buff[100];
 
 WiFiClient espClient; //this needs to be unique for each controller
 PubSubClient client(espClient); //this needs to be unique for each controller
-ESPAsyncE131 e131(1);
+#ifdef ENABLE_E131
+  ESPAsyncE131 e131(1);
+#endif
 
 void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -287,7 +299,9 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-  e131.begin(E131_UNICAST);
+  #ifdef ENABLE_E131
+    e131.begin(E131_UNICAST);
+  #endif
 }
 
 
@@ -416,7 +430,7 @@ void loop() {
   handlePowerButton();
   handleColorButton();
   handleEffectButton();
-  
+  #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
     digitalWrite(BUILTIN_LED, LOW);
     if (!e131.isEmpty()) {
@@ -429,7 +443,10 @@ void loop() {
       FastLED.setBrightness(255);
       FastLED.show();
     }
-  } else {
+  } else
+  #endif
+  {
+  
     int Rcolor = setRed;
     int Gcolor = setGreen;
     int Bcolor = setBlue; 
