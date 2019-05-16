@@ -1,4 +1,3 @@
-#include "config.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -7,6 +6,7 @@
 #include <FastLED.h>
 #include <ArduinoOTA.h>
 #include <ESPAsyncE131.h>
+#include "config.h"
 
 int OTAport = 8266;
 
