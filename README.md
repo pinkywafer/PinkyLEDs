@@ -28,6 +28,7 @@ Additional libraries which you will require are:
 * PubSubClient version 2.7
 * FastLED version 3.1+ (I'm currently using 3.2.6)
 * ESPAsyncE131 version 1
+* ESPAsyncUDP (required by ESPAsyncE131)
 
 Thanks to the original authors, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!
 
