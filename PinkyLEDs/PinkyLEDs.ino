@@ -126,7 +126,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
         "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
         "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
   #ifdef ENABLE_E131
-    #define DISCOVERY_E131 ",\"E131\"] }"
+    #define DISCOVERY_E131 ",\"E131\""
   #else
     #define DISCOVERY_E131 ""
   #endif
