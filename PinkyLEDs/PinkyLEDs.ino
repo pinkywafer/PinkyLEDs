@@ -126,7 +126,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
         "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
         "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
   #ifdef ENABLE_E131
-    #define DISCOVERY_E131 ",\"E131\"] }"
+    #define DISCOVERY_E131 ",\"E131\""
   #else
     #define DISCOVERY_E131 ""
   #endif
@@ -241,11 +241,15 @@ void setup() {
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
   pinMode(COLOR_BUTTON_PIN, INPUT_PULLUP);
   pinMode(EFFECT_BUTTON_PIN, INPUT_PULLUP);
-  
+  #ifdef DEBUG 
+    Serial.println("GPIO Setup complete");
+  #endif
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setMaxPowerInVoltsAndMilliamps(12, 10000); //experimental for power management. Feel free to try in your own setup.
   FastLED.setBrightness(brightness);
-
+  #ifdef DEBUG 
+    Serial.println("FastLED initialised"); 
+  #endif
   setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
   setupThxPalette( CRGB::OrangeRed, CRGB::Olive, CRGB::Maroon, CRGB::Maroon); //for Thanksgiving
   setupHailPalette( CRGB::Blue, CRGB::Blue, CRGB::Yellow, CRGB::Yellow); //for HAIL
@@ -254,15 +258,23 @@ void setup() {
   setupIndPalette( CRGB::FireBrick, CRGB::Cornsilk, CRGB::MediumBlue, CRGB::MediumBlue); //for Independence
 
   gPal = HeatColors_p; //for FIRE
-
+  #ifdef DEBUG
+    Serial.println("Palettes initialised");
+  #endif
   fill_solid(leds, NUM_LEDS, CRGB(255, 0, 0)); //Startup LED Lights
   FastLED.show();
-
+  #ifdef DEBUG 
+    Serial.println("Initial setup complete - LEDs on RED"); 
+  #endif
   setup_wifi();
-
+  #ifdef DEBUG 
+    Serial.println("WiFi Setup complete"); 
+  #endif
   client.setServer(mqtt_server, 1883); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
-
+  #ifdef DEBUG 
+    Serial.println("MQTT Initialised"); 
+  #endif
   ArduinoOTA.setPort(OTAport);
   ArduinoOTA.setHostname(DEVICE_NAME);
   ArduinoOTA.setPassword((const char *)OTApassword);
@@ -296,9 +308,9 @@ void setup() {
     }
   });
   ArduinoOTA.begin();
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  #ifdef DEBUG 
+    Serial.println("OTA setup complete"); 
+  #endif
   #ifdef ENABLE_E131
     e131.begin(E131_UNICAST);
   #endif
@@ -338,11 +350,13 @@ void setup_wifi() {
 
 void callback(char* topic, byte* payload, unsigned int length) {
   char message[length + 1];
+  Serial.print("MQTT message received ");
   for (int i = 0; i < length; i++) {
     message[i] = (char)payload[i];
   }
   if (String(topic) == mqttstate){
-      client.unsubscribe(mqttstate);
+    Serial.println("State message - Unsubscribing from state topic"); 
+    client.unsubscribe(mqttstate);
   }
   message[length] = '\0';
   Serial.println(message);
@@ -353,80 +367,129 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (!root.success()) {
     Serial.println("parseObject() failed");
   } else {
+    #ifdef DEBUG 
+      Serial.println("JSON message parsed succesfully"); 
+    #endif
     if (root.containsKey("state")) {
       const char* power = root["state"];
       setPower = power;
+      #ifdef DEBUG 
+        Serial.print("Power set: "); 
+        Serial.println(setPower); 
+      #endif
     }
   
     if (root.containsKey("color")) {
       setRed = root["color"]["r"];
       setGreen = root["color"]["g"];
       setBlue = root["color"]["b"];
+      #ifdef DEBUG
+        Serial.print("Colour Set: Red:");
+        Serial.print(setRed, DEC);
+        Serial.print("  Green: ");
+        Serial.print(setGreen, DEC);
+        Serial.print("  Blue: ");
+        Serial.println(setBlue, DEC);
+      #endif
     }
 
     if (root.containsKey("brightness")) {
       brightness = root["brightness"];
+      #ifdef DEBUG 
+        Serial.print("Brightness Set: "); 
+        Serial.println(brightness); 
+      #endif
     }
 
     if (root.containsKey("effect")) {
       const char* newEffect = root["effect"];
       setEffect = newEffect;
+      #ifdef DEBUG 
+        Serial.print("Effect Set: ");
+        Serial.println(setEffect); 
+      #endif
       if (setEffect == "E131") {
-      FastLED.clear(true);
+        FastLED.clear(true);
+        #ifdef DEBUG 
+          Serial.println("LEDs Cleared.  Ready for E1.31"); 
+        #endif
       }
-      if (setEffect == "Twinkle") {
+      if ((setEffect == "Twinkle")||(setEffect == "Lightning")) {
         twinklecounter = 0;
-      }
-      if (setEffect == "Lightning") {
-        twinklecounter = 0;
+        #ifdef DEBUG
+          Serial.println("Twinkle Counter reset"); 
+        #endif
       }
     }
 
     if (root.containsKey(SPEEDTOPIC)) {
       animationspeed = root[SPEEDTOPIC];
+      #ifdef DEBUG 
+        Serial.print("Speed Set: "); 
+        Serial.println(animationspeed); 
+      #endif
     }
 
     if (root.containsKey("flash")) {
       flashTime = (int)root["flash"] * 1000;
+      #ifdef DEBUG 
+        Serial.print("Flash Set: "); 
+        Serial.println(flashTime); 
+      #endif
     }else{
       flashTime = 0;
+      #ifdef DEBUG 
+        Serial.println("Flash Set: Off"); 
+      #endif
     }
   }
+  #ifdef DEBUG 
+    Serial.println("Prepare to publish state..."); 
+  #endif
   publishState();
+  #ifdef DEBUG 
+    Serial.println("MQTT command complete"); 
+  #endif
 }
 
 void publishState() {
   StaticJsonBuffer<250> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
-
+  #ifdef DEBUG 
+    Serial.print("Initialising JSON State Message... "); 
+  #endif
   root["state"] = setPower; 
-  
   JsonObject& color = root.createNestedObject("color");
   color["r"] = setRed;
   color["g"] = setGreen;
   color["b"] = setBlue;
-
   root["brightness"] = brightness;
   root["effect"] = setEffect; 
   root[SPEEDTOPIC] = animationspeed;
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
   }
-
   char buffer[root.measureLength() + 1];
   root.printTo(buffer, sizeof(buffer));
+  #ifdef DEBUG 
+    Serial.println("Done");
+  #endif
   client.publish(mqttstate, buffer, true);
+  #ifdef DEBUG 
+    Serial.println("State Sent"); 
+  #endif
 }
 
 void loop() {
 
   if (!client.connected()) {
+    Serial.println("MQTT Disconnected...");
     reconnect();
+    Serial.println("MQTT Connection attempt complete");
+  } else {
+    client.loop();
   }
-  client.loop();
-
   ArduinoOTA.handle();
-
   handlePowerButton();
   handleColorButton();
   handleEffectButton();
@@ -966,12 +1029,21 @@ void reconnect() {
         client.beginPublish(DISCOVERY_TOPIC,sizeof(b)-1,true);//){;
         client.write(b,sizeof(b)-1);
         client.endPublish();
+        #ifdef DEBUG 
+          Serial.println("Discovery message sent"); 
+        #endif
       #endif
       client.subscribe(mqttcommand);
       client.subscribe(mqtt_group_topic);
+      #ifdef DEBUG 
+        Serial.println("Subscribed to MQTT topics");
+      #endif
       if (startupMQTTconnect) {
         client.subscribe(mqttstate);
         startupMQTTconnect = false;
+        #ifdef DEBUG
+          Serial.println("Subscribed to MQTT State topic"); 
+        #endif
         fill_solid(leds, NUM_LEDS, CRGB(0, 255, 0));
         FastLED.show();
         delay(500);
@@ -980,6 +1052,9 @@ void reconnect() {
         delay(250);
       } else {
         publishState();
+        #ifdef DEBUG 
+          Serial.println("State published"); 
+        #endif
       }
     } else {
       Serial.print("failed, rc=");
