@@ -1021,7 +1021,7 @@ void reconnect() {
   if (millis() - mqttReconnectMillis >= 5000) {
     mqttReconnectMillis = millis();
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password, LWTTOPIC, 0, 0, "Offline")) { //)) {
+    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password, LWTTOPIC, 0, true, "Offline")) { 
       Serial.println("connected");
       client.publish(LWTTOPIC, "Online", true);
       #ifdef USE_DISCOVERY
