@@ -237,7 +237,7 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Serial.begin(115200);
-  pinMode(BUILTIN_LED, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
   pinMode(COLOR_BUTTON_PIN, INPUT_PULLUP);
   pinMode(EFFECT_BUTTON_PIN, INPUT_PULLUP);
@@ -495,7 +495,7 @@ void loop() {
   handleEffectButton();
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    digitalWrite(BUILTIN_LED, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
@@ -517,12 +517,12 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      digitalWrite(BUILTIN_LED, HIGH);
+      digitalWrite(LED_BUILTIN, HIGH);
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      digitalWrite(BUILTIN_LED, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
         if(millis()  - flashDelay >= flashTime) {
