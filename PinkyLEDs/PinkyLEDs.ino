@@ -1,5 +1,10 @@
 #include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+  #include "WiFi.h"
+#elif defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#endif
+
 #include <PubSubClient.h>
 
 #ifdef ESP8266
@@ -16,6 +21,10 @@
 #define FASTLED_INTERRUPT_RETRY_COUNT 1
 #endif
 
+#ifdef ARDUINO_ESP8266_NODEMCU
+#define FASTLED_ESP8266_RAW_PIN_ORDER
+#endif
+
 #include <FastLED.h>
 #include <ArduinoOTA.h>
 #include "config.h"
@@ -23,7 +32,15 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.7.1"
+#define VERSION "0.7.2"
+
+#ifdef ESP32
+  #define ON HIGH
+  #define OFF LOW
+#else
+  #define ON LOW
+  #define OFF HIGH
+#endif
 
 int OTAport = 8266;
 
@@ -252,7 +269,7 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 #endif
 
 void setup() {
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  //WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
@@ -286,6 +303,12 @@ void setup() {
   setup_wifi();
   #ifdef DEBUG 
     Serial.println("WiFi Setup complete"); 
+    Serial.print("Hostname: ");
+    #ifdef ESP32
+      Serial.println(WiFi.getHostname());
+    #else
+      Serial.println(WiFi.hostname());
+    #endif
   #endif
   client.setServer(mqtt_server, 1883); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
@@ -512,7 +535,7 @@ void loop() {
   handleEffectButton();
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, ON);
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
@@ -534,12 +557,12 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      digitalWrite(LED_BUILTIN, HIGH);
+      digitalWrite(LED_BUILTIN, OFF);
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(LED_BUILTIN, ON);
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
         if(millis()  - flashDelay >= flashTime) {
