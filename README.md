@@ -23,7 +23,7 @@ It should be possible to run this on other ESP8266 boards, but other changes may
 
 Additional libraries which you will require are:
 * ESP8266 Boards Version 2.5.0 (installed to arduinoIDE in boards manager)
-  * NOTE FastLED library is NOT compatible with ESP8266 boards version 2.5.1
+  * NOTE FastLED library is currently NOT compatible with ESP8266 boards version 2.5.1 or above
 * ArduinoJson version 5 (I'm using version 5.13.5) (Will not work with version 6)
 * PubSubClient version 2.7
 * FastLED version 3.1+ (I'm currently using 3.2.6)
