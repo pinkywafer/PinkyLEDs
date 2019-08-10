@@ -116,7 +116,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 
 #ifdef USE_DISCOVERY
   #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
-  #define DISCOVERY_BASE "{ \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
+  #define DISCOVERY_BASE "{ \"unique_id\": \"PinkyLED_" DEVICE_NAME "\", \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
         "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
@@ -1021,7 +1021,7 @@ void reconnect() {
   if (millis() - mqttReconnectMillis >= 5000) {
     mqttReconnectMillis = millis();
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password, LWTTOPIC, 0, 0, "Offline")) { //)) {
+    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password, LWTTOPIC, 0, true, "Offline")) { //)) {
       Serial.println("connected");
       client.publish(LWTTOPIC, "Online", true);
       #ifdef USE_DISCOVERY
