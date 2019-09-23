@@ -10,7 +10,7 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.5.1"
+#define VERSION "0.6.0"
 
 int OTAport = 8266;
 
