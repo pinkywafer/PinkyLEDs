@@ -199,8 +199,8 @@ uint8_t bpm = 30;
 uint8_t frequency = 50;                                       // controls the interval between strikes
 uint8_t flashes = 8;                                          //the upper limit of flashes per strike
 unsigned int dimmer = 1;
-uint8_t ledstart;                                             // Starting location of a flash
-uint8_t ledlen;
+uint16_t ledstart;                                            // Starting location of a flash
+uint16_t ledlen;
 int lightningcounter = 0;
 
 /********FOR FUNKBOX EFFECTS**********/
@@ -763,8 +763,8 @@ void loop() {
           FastLED.show();
         }
         
-        ledstart = random8(NUM_LEDS);           // Determine starting location of flash
-        ledlen = random8(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
+        ledstart = random16(NUM_LEDS);           // Determine starting location of flash
+        ledlen = random16(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
         static unsigned int lightningFlashTime = 0;
         static unsigned int lightningFlashDelay = 0;
         if (millis() - lightningFlashTime >= lightningFlashDelay){
