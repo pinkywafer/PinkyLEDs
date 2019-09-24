@@ -22,12 +22,11 @@ To set up, edit the config.h file to suit your setup, and upload via the Arduino
 It should be possible to run this on other ESP8266 boards, but other changes may be needed
 
 Additional libraries which you will require are:
-* ESP8266 Boards Version 2.5.0 (installed to arduinoIDE in boards manager)
-  * NOTE FastLED library is currently NOT compatible with ESP8266 boards version 2.5.1 or above
+* ESP8266 Boards Latest version (installed to arduinoIDE in boards manager
 * ArduinoJson version 5 (I'm using version 5.13.5) (Will not work with version 6)
-* PubSubClient version 2.7
-* FastLED version 3.1+ (I'm currently using 3.2.6)
-* ESPAsyncE131 version 1
+* PubSubClient Latest version
+* FastLED Latest version (3.3.2)
+* ESPAsyncE131 Latest version
 * ESPAsyncUDP (required by ESPAsyncE131)
 
 Thanks to the original authors, DrZzs for additional effects, http://soliton.vm.bytemark.co.uk/pub/cpt-city/bhw/index.html for color palettes and anyone else I've missed!

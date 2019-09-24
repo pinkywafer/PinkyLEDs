@@ -10,7 +10,7 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.6.1"
+#define VERSION "0.7.0"
 
 int OTAport = 8266;
 
@@ -142,8 +142,6 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
     #warning "Requires FastLED 3.1 or later; check github for latest code."
   #endif
 #endif
-
-#define FL_ALIGN_PROGMEM __attribute__ ((aligned (4)))
 
 char setRed = 0;
 char setGreen = 0;
