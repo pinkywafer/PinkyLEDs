@@ -746,9 +746,9 @@ void loop() {
       }
 
       if (setEffect == "Dots") {
-        uint8_t inner = beatsin8(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
-        uint8_t outer = beatsin8(bpm, 0, NUM_LEDS - 1);
-        uint8_t middle = beatsin8(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
+        uint16_t inner = beatsin16(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
+        uint16_t outer = beatsin16(bpm, 0, NUM_LEDS - 1);
+        uint16_t middle = beatsin16(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
         leds[middle] = CRGB::Purple;
         leds[inner] = CRGB::Blue;
         leds[outer] = CRGB::Aqua;
