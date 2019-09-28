@@ -1,8 +1,21 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#define FASTLED_ALLOW_INTERRUPTS 0
-// #define FASTLED_INTERRUPT_RETRY_COUNT 0
+
+#ifdef ESP8266
+/*
+  Spending too much time in the ISR or disabling the interrupts for too long
+  time could cause WDT reset.
+
+  For info see:
+  https://github.com/espressif/ESP8266_NONOS_SDK/issues/90
+  and
+  https://github.com/FastLED/FastLED/wiki/Interrupt-problems
+*/
+//#define FASTLED_ALLOW_INTERRUPTS 0
+#define FASTLED_INTERRUPT_RETRY_COUNT 1
+#endif
+
 #include <FastLED.h>
 #include <ArduinoOTA.h>
 #include "config.h"
