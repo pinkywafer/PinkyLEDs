@@ -20,11 +20,11 @@
   https://github.com/FastLED/FastLED/wiki/Interrupt-problems
 */
 //#define FASTLED_ALLOW_INTERRUPTS 0
-#define FASTLED_INTERRUPT_RETRY_COUNT 1
+  #define FASTLED_INTERRUPT_RETRY_COUNT 1
 #endif
 
 #ifdef ARDUINO_ESP8266_NODEMCU
-#define FASTLED_ESP8266_RAW_PIN_ORDER
+  #define FASTLED_ESP8266_RAW_PIN_ORDER
 #endif
 
 #include <FastLED.h>
@@ -284,7 +284,9 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);
+  #ifdef LED_BUILTIN
+    pinMode(LED_BUILTIN, OUTPUT);
+  #endif
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
   pinMode(COLOR_BUTTON_PIN, INPUT_PULLUP);
   pinMode(EFFECT_BUTTON_PIN, INPUT_PULLUP);
@@ -555,7 +557,9 @@ void loop() {
   handleEffectButton();
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    digitalWrite(LED_BUILTIN, LED_ON);
+    #ifdef LED_BUILTIN
+      digitalWrite(LED_BUILTIN, LED_ON);
+    #endif
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
@@ -577,12 +581,16 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      digitalWrite(LED_BUILTIN, LED_OFF);
+      #ifdef LED_BUILTIN
+        digitalWrite(LED_BUILTIN, LED_OFF);
+      #endif
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      digitalWrite(LED_BUILTIN, LED_ON);
+      #ifdef LED_BUILTIN
+        digitalWrite(LED_BUILTIN, LED_ON);
+      #endif
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
         if(millis()  - flashDelay >= flashTime) {
