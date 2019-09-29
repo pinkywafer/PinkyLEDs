@@ -36,6 +36,18 @@
 
 #define VERSION "0.7.2"
 
+#ifdef ARDUINO_ESP8266_NODEMCU
+  #define HW_PLATFORM "NodeMCU"
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+  #define HW_PLATFORM "D1 mini"
+#elif defined(ESP32)
+  #define HW_PLATFORM "ESP32"
+#else
+  #define HW_PLATFORM "other"
+#endif
+
+#define VERSION_FULL VERSION " " HW_PLATFORM
+
 #ifdef ESP32
   #define ON HIGH
   #define OFF LOW
@@ -151,7 +163,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 #ifdef USE_DISCOVERY
   #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
   #define DISCOVERY_BASE "{ \"unique_id\": \"PinkyLED_" DEVICE_NAME "\", \"device\":{\"identifiers\":\"" DEVICE_NAME \
-        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION \
+        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION_FULL \
         "\"}, \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
