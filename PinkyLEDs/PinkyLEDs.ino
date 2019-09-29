@@ -49,11 +49,11 @@
 #define VERSION_FULL VERSION " " HW_PLATFORM
 
 #ifdef ESP32
-  #define ON HIGH
-  #define OFF LOW
+  #define LED_ON HIGH
+  #define LED_OFF LOW
 #else
-  #define ON LOW
-  #define OFF HIGH
+  #define LED_ON LOW
+  #define LED_OFF HIGH
 #endif
 
 int OTAport = 8266;
@@ -376,7 +376,7 @@ void setup_wifi() {
   #else
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   #endif
-  
+
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
@@ -553,7 +553,7 @@ void loop() {
   handleEffectButton();
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    digitalWrite(LED_BUILTIN, ON);
+    digitalWrite(LED_BUILTIN, LED_ON);
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
@@ -575,12 +575,12 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      digitalWrite(LED_BUILTIN, OFF);
+      digitalWrite(LED_BUILTIN, LED_OFF);
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      digitalWrite(LED_BUILTIN, ON);
+      digitalWrite(LED_BUILTIN, LED_ON);
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
         if(millis()  - flashDelay >= flashTime) {
