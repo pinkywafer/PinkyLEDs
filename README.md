@@ -21,9 +21,12 @@ To set up, edit the config.h file to suit your setup, and upload via the Arduino
 
 It should be possible to run this on other ESP8266 boards, but other changes may be needed
 
-Additional libraries which you will require are:
+# Board required:
 * ESP8266 Boards Version 2.5.2 (installed to arduinoIDE in boards manager)
+
+or
 * ESP32 Boards Version 1.0.3 (installed to arduinoIDE in boards manager)
+# Additional libraries required
 * ArduinoJson version 5 (I'm using version 5.13.5) (Will not work with version 6)
 * PubSubClient Latest version
 * FastLED Latest version (3.3.2)
