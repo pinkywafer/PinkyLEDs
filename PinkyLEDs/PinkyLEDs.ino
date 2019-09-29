@@ -486,12 +486,14 @@ void publishState() {
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
   }
-  char buffer[root.measureLength() + 1];
-  root.printTo(buffer, sizeof(buffer));
+  uint8_t buffer[root.measureLength() + 1];
+  root.printTo((char*)buffer, sizeof(buffer));
   #ifdef DEBUG 
     Serial.println("Done");
   #endif
-  client.publish(mqttstate, buffer, true);
+  client.beginPublish(mqttstate,sizeof(buffer)-1,false);
+  client.write(buffer,sizeof(buffer)-1);
+  client.endPublish();
   #ifdef DEBUG 
     Serial.println("State Sent"); 
   #endif
