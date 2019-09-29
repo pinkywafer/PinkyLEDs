@@ -12,14 +12,38 @@
 #define mqtt_password "MQTTPASSWORD" //enter your MQTT password
 #define mqtt_group_topic "cmnd/PinkyLEDs" // MQTT group topic to allow controlling multiple controllers with a single mqtt command
 
-#define DATA_PIN    D5 // the pin the LEDs are connected to. (on NodeMCU 1.0, FastLED will default to the D5 pin after throwing an error during compiling.)
 #define LED_TYPE    WS2812 // your LED type WS2812 / WS2811
 #define COLOR_ORDER GRB // your color order (normally: RGB for WS2811 | GRB for WS2812)
 #define NUM_LEDS    150 // number of LEDs in your strip
 
-#define POWER_BUTTON_PIN D6  // pin the Power button is connected to.  If not using the button, leave it as it is
-#define COLOR_BUTTON_PIN D7 // pin the Color button is connected to.  If not using the button, leave it as it is
-#define EFFECT_BUTTON_PIN 3 // pin the Effects button is connected to.  If not using the button, leave it as it is (3 is RX pin on D1 mini)
+/*
+Pin configuration:
+- DATA_PIN          : the pin the LEDs are connected to.
+- POWER_BUTTON_PIN  : pin the Power button is connected to.  (If not using the button, use the example value for the board)
+- COLOR_BUTTON_PIN  : pin the Color button is connected to.  (If not using the button, use the example value for the board)
+- EFFECT_BUTTON_PIN : pin the Effects button is connected to.  (If not using the button, use the example value for the board)
+
+Don't use the pin of the built in LED! 
+(D4 on the D1 mini, D0 on the NodeMCU, D2 on DOIT ESP32 DEVKIT V1. Check your board's documentation!)
+
+Example pin config for D1 mini and NodeMCU:
+
+#define DATA_PIN          D5
+#define POWER_BUTTON_PIN  D6
+#define COLOR_BUTTON_PIN  D7
+#define EFFECT_BUTTON_PIN RX
+
+Example pin config for DOIT ESP32 DEVKIT V1:
+#define DATA_PIN          23
+#define POWER_BUTTON_PIN  18
+#define COLOR_BUTTON_PIN  19
+#define EFFECT_BUTTON_PIN 21
+
+*/
+#define DATA_PIN          D5
+#define POWER_BUTTON_PIN  D6
+#define COLOR_BUTTON_PIN  D7
+#define EFFECT_BUTTON_PIN RX
 
 #define OTApassword "OTApassword" //the password you will need to enter to upload remotely via the ArduinoIDE
 

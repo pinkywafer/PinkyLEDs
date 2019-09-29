@@ -1,5 +1,12 @@
 #include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
+#ifdef ESP32
+  #include <WiFi.h>
+  #include <ESPmDNS.h>
+#elif defined(ESP8266)
+  #include <ESP8266WiFi.h>
+  #include <ESP8266mDNS.h>
+#endif
+
 #include <PubSubClient.h>
 
 #ifdef ESP8266
@@ -16,6 +23,10 @@
 #define FASTLED_INTERRUPT_RETRY_COUNT 1
 #endif
 
+#ifdef ARDUINO_ESP8266_NODEMCU
+#define FASTLED_ESP8266_RAW_PIN_ORDER
+#endif
+
 #include <FastLED.h>
 #include <ArduinoOTA.h>
 #include "config.h"
@@ -23,7 +34,27 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.7.2"
+#define VERSION "0.8.0"
+
+#ifdef ARDUINO_ESP8266_NODEMCU
+  #define HW_PLATFORM "NodeMCU"
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+  #define HW_PLATFORM "D1 mini"
+#elif defined(ESP32)
+  #define HW_PLATFORM "ESP32"
+#else
+  #define HW_PLATFORM "other"
+#endif
+
+#define VERSION_FULL VERSION " " HW_PLATFORM
+
+#ifdef ESP32
+  #define LED_ON HIGH
+  #define LED_OFF LOW
+#else
+  #define LED_ON LOW
+  #define LED_OFF HIGH
+#endif
 
 int OTAport = 8266;
 
@@ -132,7 +163,7 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 #ifdef USE_DISCOVERY
   #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
   #define DISCOVERY_BASE "{ \"unique_id\": \"PinkyLED_" DEVICE_NAME "\", \"device\":{\"identifiers\":\"" DEVICE_NAME \
-        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION \
+        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION_FULL \
         "\"}, \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
@@ -252,7 +283,6 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 #endif
 
 void setup() {
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
@@ -286,6 +316,12 @@ void setup() {
   setup_wifi();
   #ifdef DEBUG 
     Serial.println("WiFi Setup complete"); 
+    Serial.print("Hostname: ");
+    #ifdef ESP32
+      Serial.println(WiFi.getHostname());
+    #else
+      Serial.println(WiFi.hostname());
+    #endif
   #endif
   client.setServer(mqtt_server, mqtt_port); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
@@ -335,6 +371,11 @@ void setup() {
 
 
 void setup_wifi() {
+  #ifdef ESP32
+  WiFi.setSleep(false);
+  #else
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  #endif
 
   delay(10);
   Serial.println();
@@ -514,7 +555,7 @@ void loop() {
   handleEffectButton();
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    digitalWrite(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, LED_ON);
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
@@ -536,12 +577,12 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      digitalWrite(LED_BUILTIN, HIGH);
+      digitalWrite(LED_BUILTIN, LED_OFF);
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(LED_BUILTIN, LED_ON);
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
         if(millis()  - flashDelay >= flashTime) {
