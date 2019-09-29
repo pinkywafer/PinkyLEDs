@@ -283,7 +283,6 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 #endif
 
 void setup() {
-  //WiFi.setSleepMode(WIFI_NONE_SLEEP);
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
@@ -372,7 +371,12 @@ void setup() {
 
 
 void setup_wifi() {
-
+  #ifdef ESP32
+  WiFi.setSleep(false);
+  #else
+  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  #endif
+  
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
