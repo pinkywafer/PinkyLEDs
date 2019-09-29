@@ -491,7 +491,7 @@ void publishState() {
   #ifdef DEBUG 
     Serial.println("Done");
   #endif
-  client.beginPublish(mqttstate,sizeof(buffer)-1,false);
+  client.beginPublish(mqttstate,sizeof(buffer)-1,true);
   client.write(buffer,sizeof(buffer)-1);
   client.endPublish();
   #ifdef DEBUG 
