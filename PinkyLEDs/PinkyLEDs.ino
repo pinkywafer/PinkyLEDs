@@ -34,7 +34,7 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.7.2"
+#define VERSION "0.8.0"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
