@@ -287,7 +287,7 @@ void setup() {
   #ifdef DEBUG 
     Serial.println("WiFi Setup complete"); 
   #endif
-  client.setServer(mqtt_server, 1883); //CHANGE PORT HERE IF NEEDED
+  client.setServer(mqtt_server, mqtt_port); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
   #ifdef DEBUG 
     Serial.println("MQTT Initialised"); 
