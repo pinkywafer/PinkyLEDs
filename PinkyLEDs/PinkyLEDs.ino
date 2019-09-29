@@ -23,7 +23,7 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.7.1"
+#define VERSION "0.7.2"
 
 int OTAport = 8266;
 
@@ -287,7 +287,7 @@ void setup() {
   #ifdef DEBUG 
     Serial.println("WiFi Setup complete"); 
   #endif
-  client.setServer(mqtt_server, 1883); //CHANGE PORT HERE IF NEEDED
+  client.setServer(mqtt_server, mqtt_port); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
   #ifdef DEBUG 
     Serial.println("MQTT Initialised"); 
@@ -486,12 +486,14 @@ void publishState() {
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
   }
-  char buffer[root.measureLength() + 1];
-  root.printTo(buffer, sizeof(buffer));
+  uint8_t buffer[root.measureLength() + 1];
+  root.printTo((char*)buffer, sizeof(buffer));
   #ifdef DEBUG 
     Serial.println("Done");
   #endif
-  client.publish(mqttstate, buffer, true);
+  client.beginPublish(mqttstate,sizeof(buffer)-1,false);
+  client.write(buffer,sizeof(buffer)-1);
+  client.endPublish();
   #ifdef DEBUG 
     Serial.println("State Sent"); 
   #endif
