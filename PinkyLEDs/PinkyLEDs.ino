@@ -34,7 +34,11 @@
   #include <ESPAsyncE131.h>
 #endif
 
-#define VERSION "0.8.0"
+#if defined(BRIGHTNESS_ENCODER_DT) || defined(SPEED_ENCODER_DT)
+  #include <RotaryEncoder.h>
+#endif
+
+#define VERSION "0.9.0"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
@@ -192,14 +196,25 @@ char setGreen = 0;
 char setBlue = 150;
 String setPower = "OFF";
 String setEffect = "Solid";
-String setBrightness = "150";
 int brightness = 150;
-String setAnimationSpeed;
-int animationspeed = 240;
-String setColorTemp;
+int animationSpeed = 240;
 unsigned long flashTime = 0;
 CRGB leds[NUM_LEDS];
 bool startupMQTTconnect = true;
+
+#ifdef BRIGHTNESS_ENCODER_DT
+  RotaryEncoder brightnessEncoder(BRIGHTNESS_ENCODER_DT, BRIGHTNESS_ENCODER_CLK);
+    void ICACHE_RAM_ATTR brightnessEncoderCallback(){
+      brightnessEncoder.tick();
+    }
+#endif
+
+#ifdef SPEED_ENCODER_DT
+  RotaryEncoder animationSpeedEncoder(SPEED_ENCODER_DT, SPEED_ENCODER_CLK);
+  void ICACHE_RAM_ATTR animationSpeedEncoderCallback() {
+      animationSpeedEncoder.tick();
+  }
+#endif
 
 /****************FOR CANDY CANE-like desings***************/
 CRGBPalette16 currentPalettestriped; //for Candy Cane
@@ -287,9 +302,37 @@ void setup() {
   #ifdef LED_BUILTIN
     pinMode(LED_BUILTIN, OUTPUT);
   #endif
-  pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(COLOR_BUTTON_PIN, INPUT_PULLUP);
-  pinMode(EFFECT_BUTTON_PIN, INPUT_PULLUP);
+  #ifdef POWER_BUTTON_PIN
+    pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
+  #endif
+  #ifdef COLOR_BUTTON_PIN
+    pinMode(COLOR_BUTTON_PIN, INPUT_PULLUP);
+  #endif
+  #ifdef EFFECT_BUTTON_PIN
+    pinMode(EFFECT_BUTTON_PIN, INPUT_PULLUP);
+  #endif
+  #ifdef BRIGHTNESS_ENCODER_DT
+    attachInterrupt(digitalPinToInterrupt(BRIGHTNESS_ENCODER_DT), brightnessEncoderCallback, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(BRIGHTNESS_ENCODER_CLK), brightnessEncoderCallback, CHANGE);
+    #ifdef BRIGHTNESS_ENCODER_DT
+      #ifdef BRIGHTNESS_ENCODER_LESS_STEPS
+        brightnessEncoder.setPosition(brightness / 15);
+      #else
+        brightnessEncoder.setPosition(brightness / 5);
+      #endif
+    #endif
+  #endif
+  #ifdef SPEED_ENCODER_DT
+    attachInterrupt(digitalPinToInterrupt(SPEED_ENCODER_DT), animationSpeedEncoderCallback, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(SPEED_ENCODER_CLK), animationSpeedEncoderCallback, CHANGE);
+    #ifdef SPEED_ENCODER_DT
+      #ifdef SPEED_ENCODER_LESS_STEPS
+        animationSpeedEncoder.setPosition(animationSpeed / 15);
+      #else
+        animationSpeedEncoder.setPosition(animationSpeed / 5);
+      #endif
+    #endif
+  #endif
   #ifdef DEBUG 
     Serial.println("GPIO Setup complete");
   #endif
@@ -459,6 +502,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
         Serial.print("Brightness Set: "); 
         Serial.println(brightness); 
       #endif
+      #ifdef BRIGHTNESS_ENCODER_DT
+        #ifdef BRIGHTNESS_ENCODER_LESS_STEPS
+          brightnessEncoder.setPosition(brightness / 15);
+        #else
+          brightnessEncoder.setPosition(brightness / 5);
+        #endif
+      #endif
     }
 
     if (root.containsKey("effect")) {
@@ -483,10 +533,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
 
     if (root.containsKey(SPEEDTOPIC)) {
-      animationspeed = root[SPEEDTOPIC];
+      animationSpeed = root[SPEEDTOPIC];
       #ifdef DEBUG 
         Serial.print("Speed Set: "); 
-        Serial.println(animationspeed); 
+        Serial.println(animationSpeed); 
+      #endif
+      #ifdef SPEED_ENCODER_DT
+        #ifdef SPEED_ENCODER_LESS_STEPS
+          animationSpeedEncoder.setPosition(animationSpeed / 15);
+        #else
+          animationSpeedEncoder.setPosition(animationSpeed / 5);
+        #endif
+        
       #endif
     }
 
@@ -525,7 +583,7 @@ void publishState() {
   color["b"] = setBlue;
   root["brightness"] = brightness;
   root["effect"] = setEffect; 
-  root[SPEEDTOPIC] = animationspeed;
+  root[SPEEDTOPIC] = animationSpeed;
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
   }
@@ -545,16 +603,28 @@ void publishState() {
 void loop() {
 
   if (!client.connected()) {
-    Serial.println("MQTT Disconnected...");
+    //Serial.println("MQTT Disconnected...");
     reconnect();
-    Serial.println("MQTT Connection attempt complete");
+    //Serial.println("MQTT Connection attempt complete");
   } else {
     client.loop();
   }
   ArduinoOTA.handle();
-  handlePowerButton();
-  handleColorButton();
-  handleEffectButton();
+  #ifdef POWER_BUTTON_PIN
+    handlePowerButton();
+  #endif
+  #ifdef COLOR_BUTTON_PIN
+    handleColorButton();
+  #endif
+  #ifdef EFFECT_BUTTON_PIN
+    handleEffectButton();
+  #endif
+  #ifdef BRIGHTNESS_ENCODER_DT
+    brightnessFromEncoder();
+  #endif
+  #ifdef SPEED_ENCODER_DT
+    animationSpeedFromEncoder();
+  #endif
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
     #ifdef LED_BUILTIN
@@ -974,9 +1044,9 @@ void loop() {
     if (setPower == "OFF"){
       FastLED.delay(10);
     } else {
-      if (animationspeed > 0 && animationspeed < 255) {  //Sets animation speed based on receieved value
-        FastLED.delay((255 - (animationspeed - 1)) * 6);
-      } else if (animationspeed == 0) {
+      if (animationSpeed > 0 && animationSpeed < 255) {  //Sets animation speed based on receieved value
+        FastLED.delay((255 - (animationSpeed - 1)) * 6);
+      } else if (animationSpeed == 0) {
         FastLED.delay(1600);
       }
     }
@@ -1137,78 +1207,124 @@ void reconnect() {
     }
   }
 }
-
-void handlePowerButton() {
-  static unsigned int powerDebounce = 0;
-  static int lastPowerButtonState = HIGH;
-  if (millis() - powerDebounce >= 50) { //avoid delay for debounce
-    powerDebounce = millis();
-    int powerButtonState = digitalRead(POWER_BUTTON_PIN);
-    if (powerButtonState != lastPowerButtonState) { // button state has changed
-      if (powerButtonState == LOW) { // button is pressed
-        if (setPower == "ON") { //if on, turn off
-          setPower = "OFF";
-        } else { //if off turn on
-          setPower = "ON";
+#ifdef POWER_BUTTON_PIN
+  void handlePowerButton() {
+    static unsigned int powerDebounce = 0;
+    static int lastPowerButtonState = HIGH;
+    if (millis() - powerDebounce >= 50) { //avoid delay for debounce
+      powerDebounce = millis();
+      int powerButtonState = digitalRead(POWER_BUTTON_PIN);
+      if (powerButtonState != lastPowerButtonState) { // button state has changed
+        if (powerButtonState == LOW) { // button is pressed
+          if (setPower == "ON") { //if on, turn off
+            setPower = "OFF";
+          } else { //if off turn on
+            setPower = "ON";
+          }
+          publishState();
+          Serial.println("Button press - Set Power: " + setPower);
         }
-        publishState();
-        Serial.println("Button press - Set Power: " + setPower);
       }
+      lastPowerButtonState = powerButtonState;
     }
-    lastPowerButtonState = powerButtonState;
   }
-}
-
-void handleColorButton() {
-  static int nextColor = 0;
-  static unsigned int colorDebounce = 0;
-  static int lastColorButtonState = HIGH;
-  if (millis() - colorDebounce >= 50) { //avoid delay for debounce
-    colorDebounce = millis();
-    int colorButtonState = digitalRead(COLOR_BUTTON_PIN);
-    if (colorButtonState != lastColorButtonState) { // button state has changed
-      if (colorButtonState == LOW) { // button is pressed
-        setRed = colorList[nextColor][0];
-        setGreen = colorList[nextColor][1];
-        setBlue = colorList[nextColor][2];
-        if (nextColor + 1 >= (sizeof(colorList) / 3)){
-          nextColor = 0;
-        } else {
-          nextColor++;
+#endif
+#ifdef COLOR_BUTTON_PIN
+  void handleColorButton() {
+    static int nextColor = 0;
+    static unsigned int colorDebounce = 0;
+    static int lastColorButtonState = HIGH;
+    if (millis() - colorDebounce >= 50) { //avoid delay for debounce
+      colorDebounce = millis();
+      int colorButtonState = digitalRead(COLOR_BUTTON_PIN);
+      if (colorButtonState != lastColorButtonState) { // button state has changed
+        if (colorButtonState == LOW) { // button is pressed
+          setRed = colorList[nextColor][0];
+          setGreen = colorList[nextColor][1];
+          setBlue = colorList[nextColor][2];
+          if (nextColor + 1 >= (sizeof(colorList) / 3)){
+            nextColor = 0;
+          } else {
+            nextColor++;
+          }
+          publishState();
         }
-        publishState();
       }
+      lastColorButtonState = colorButtonState;
     }
-    lastColorButtonState = colorButtonState;
   }
-}
-
-void handleEffectButton() {
-  static int nextEffect = 0;
-  static unsigned int effectDebounce = 0;
-  static int lastEffectButtonState = HIGH;
-  if (millis() - effectDebounce >= 50) { //avoid delay for debounce
-    effectDebounce = millis();
-    int effectButtonState = digitalRead(EFFECT_BUTTON_PIN);
-    if (effectButtonState != lastEffectButtonState) { // button state has changed
-      if (effectButtonState == LOW) { // button is pressed
-        setEffect = effectList[nextEffect];
-        if (setEffect == "Twinkle") {
-          twinklecounter = 0;
+#endif
+#ifdef EFFECT_BUTTON_PIN
+  void handleEffectButton() {
+    static int nextEffect = 0;
+    static unsigned int effectDebounce = 0;
+    static int lastEffectButtonState = HIGH;
+    if (millis() - effectDebounce >= 50) { //avoid delay for debounce
+      effectDebounce = millis();
+      int effectButtonState = digitalRead(EFFECT_BUTTON_PIN);
+      if (effectButtonState != lastEffectButtonState) { // button state has changed
+        if (effectButtonState == LOW) { // button is pressed
+          setEffect = effectList[nextEffect];
+          if (setEffect == "Twinkle") {
+            twinklecounter = 0;
+          }
+          if (setEffect == "Lightning") {
+            twinklecounter = 0;
+          }
+          if (nextEffect + 1 >= (sizeof(effectList) / 20)){
+            nextEffect = 0;
+          } else {
+            nextEffect++;
+          }
+          Serial.print("Button press - Set Effect: " + String(setEffect));
+          Serial.println("Next Color index: " + String(nextEffect));
+          publishState();
         }
-        if (setEffect == "Lightning") {
-          twinklecounter = 0;
-        }
-        if (nextEffect + 1 >= (sizeof(effectList) / 20)){
-          nextEffect = 0;
-        } else {
-          nextEffect++;
-        }
-        Serial.print("Button press - Set Effect: " + String(setEffect));
-        Serial.println("Next Color index: " + String(nextEffect));
-        publishState();
       }
+      lastEffectButtonState = effectButtonState;
     }
-    lastEffectButtonState = effectButtonState;
   }
-}
+#endif
+#ifdef BRIGHTNESS_ENCODER_DT
+  void brightnessFromEncoder(){
+    #ifdef BRIGHTNESS_ENCODER_LESS_STEPS
+      int encoderSpeed = 15;
+    #else
+      int encoderSpeed = 5;
+    #endif
+    int newPos = brightnessEncoder.getPosition() * encoderSpeed;
+    if (newPos != brightness) {
+      if (newPos < 0) {
+          brightnessEncoder.setPosition(0);
+          newPos = 0;
+      } else if (newPos > 255) {
+          brightnessEncoder.setPosition(255 / encoderSpeed);
+          newPos = 255;
+      }
+      brightness = newPos;
+      publishState();
+    } 
+  }
+#endif
+
+#ifdef SPEED_ENCODER_DT
+  void animationSpeedFromEncoder(){
+    #ifdef SPEED_ENCODER_LESS_STEPS
+      int encoderSpeed = 15;
+    #else
+      int encoderSpeed = 5;
+    #endif
+    int newPos = animationSpeedEncoder.getPosition() * encoderSpeed;
+    if (newPos != animationSpeed) {
+      if (newPos < 0) {
+          animationSpeedEncoder.setPosition(0);
+          newPos = 0;
+      } else if (newPos > 255) {
+          animationSpeedEncoder.setPosition(255 / encoderSpeed);
+          newPos = 255;
+      }
+      animationSpeed = newPos;
+      publishState();
+    } 
+  }
+#endif

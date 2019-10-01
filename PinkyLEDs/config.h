@@ -15,14 +15,16 @@
 #define LED_TYPE    WS2812 // your LED type WS2812 / WS2811
 #define COLOR_ORDER GRB // your color order (normally: RGB for WS2811 | GRB for WS2812)
 #define NUM_LEDS    150 // number of LEDs in your strip
-
+#define DATA_PIN          23 // Pin the LEDs are connected to
 /*
 Pin configuration:
-- DATA_PIN          : the pin the LEDs are connected to.
-- POWER_BUTTON_PIN  : pin the Power button is connected to.  (If not using the button, use the example value for the board)
-- COLOR_BUTTON_PIN  : pin the Color button is connected to.  (If not using the button, use the example value for the board)
-- EFFECT_BUTTON_PIN : pin the Effects button is connected to.  (If not using the button, use the example value for the board)
-
+- POWER_BUTTON_PIN              : pin the Power button (or rotary encoder push) is connected to.  (Remove if not using the button)
+- COLOR_BUTTON_PIN              : pin the Color button (or rotary encoder push) is connected to.  (Remove if not using the button)
+- EFFECT_BUTTON_PIN             : pin the Effects button (or rotary encoder push) is connected to.  (Remove if not using the button)
+- BRIGHTNESS_ENCODER_DT         : Pin the Rotary Encoder for brightness DT pin is connected to (Remove if not using Rotary Encoder for Brightness)
+- BRIGHTNESS_ENCODER_CLK        : Pin the Rotary Encoder for brightness CLK pin is connected to (Remove if not using Rotary Encoder for Brightness)
+- SPEED_ENCODER_DT              : Pin the Rotary Encoder for speed DT pin is connected to (Remove if not using Rotary Encoder for Speed)
+- SPEED_ENCODER_CLK             : Pin the Rotary Encoder for speed CLK pin is connected to (Remove if not using Rotary Encoder for Speed)
 Don't use the pin of the built in LED! 
 (D4 on the D1 mini, D0 on the NodeMCU, D2 on DOIT ESP32 DEVKIT V1. Check your board's documentation!)
 
@@ -40,10 +42,17 @@ Example pin config for DOIT ESP32 DEVKIT V1:
 #define EFFECT_BUTTON_PIN 21
 
 */
-#define DATA_PIN          D5
-#define POWER_BUTTON_PIN  D6
-#define COLOR_BUTTON_PIN  D7
-#define EFFECT_BUTTON_PIN RX
+
+#define POWER_BUTTON_PIN  18
+#define COLOR_BUTTON_PIN  19
+#define EFFECT_BUTTON_PIN 21
+#define BRIGHTNESS_ENCODER_DT 25
+#define BRIGHTNESS_ENCODER_CLK 26
+#define SPEED_ENCODER_DT 32
+#define SPEED_ENCODER_CLK 33
+
+#define BRIGHTNESS_ENCODER_LESS_STEPS // reduces the steps needed for the brightness encoder (remove if encoder is too responsive)
+#define SPEED_ENCODER_LESS_STEPS // reduces the steps needed for the speed encoder (remove if encoder is too responsive)
 
 #define OTApassword "OTApassword" //the password you will need to enter to upload remotely via the ArduinoIDE
 
