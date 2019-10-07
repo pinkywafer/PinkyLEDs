@@ -42,7 +42,7 @@
   #include <RotaryEncoder.h>
 #endif
 
-#define VERSION "0.9.0"
+#define VERSION "0.9.1"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
