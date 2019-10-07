@@ -42,7 +42,7 @@
   #include <RotaryEncoder.h>
 #endif
 
-#define VERSION "0.9.1"
+#define VERSION "0.9.2"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
@@ -303,8 +303,8 @@ PubSubClient client(espClient); //this needs to be unique for each controller
 
 void setup() {
   Serial.begin(115200);
-  #ifdef LED_BUILTIN
-    pinMode(LED_BUILTIN, OUTPUT);
+  #ifdef BUILTIN_LED
+    pinMode(BUILTIN_LED, OUTPUT);
   #endif
   #ifdef POWER_BUTTON_PIN
     pinMode(POWER_BUTTON_PIN, INPUT_PULLUP);
@@ -638,8 +638,8 @@ void loop() {
   #endif
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
-    #ifdef LED_BUILTIN
-      digitalWrite(LED_BUILTIN, LED_ON);
+    #ifdef BUILTIN_LED
+      digitalWrite(BUILTIN_LED, LED_ON);
     #endif
     if (!e131.isEmpty()) {
       e131_packet_t packet;
@@ -698,15 +698,15 @@ void loop() {
     
     if (setPower == "OFF") {
       //setEffect = "Solid";
-      #ifdef LED_BUILTIN
-        digitalWrite(LED_BUILTIN, LED_OFF);
+      #ifdef BUILTIN_LED
+        digitalWrite(BUILTIN_LED, LED_OFF);
       #endif
       for ( int i = 0; i < NUM_LEDS; i++) {
         leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
       }
     } else {
-      #ifdef LED_BUILTIN
-        digitalWrite(LED_BUILTIN, LED_ON);
+      #ifdef BUILTIN_LED
+        digitalWrite(BUILTIN_LED, LED_ON);
       #endif
       static unsigned int flashDelay = 0;
       if (flashTime > 0) {
