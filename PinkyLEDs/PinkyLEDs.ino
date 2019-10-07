@@ -32,6 +32,10 @@
 #include "config.h"
 #ifdef ENABLE_E131
   #include <ESPAsyncE131.h>
+
+  #if (UNIVERSE_START < 1) || (UNIVERSE_START > 63999)
+    #error "UNIVERSE_START has to be 1 - 63999, check config.h"
+  #endif
 #endif
 
 #if defined(BRIGHTNESS_ENCODER_DT) || defined(SPEED_ENCODER_DT)
@@ -628,17 +632,51 @@ void loop() {
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
     #ifdef LED_BUILTIN
-      digitalWrite(LED_BUILTIN, LED_ON);
+      digitalWrite(BUILTIN_LED, LED_ON);
     #endif
     if (!e131.isEmpty()) {
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
-      for (int i = 0; i < NUM_LEDS; i++) {
-        int j = i * 3 + (CHANNEL_START);
-        leds[i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
+      
+      // Calculate the required number of Universes
+      uint16_t universeReq = (NUM_LEDS / 170);
+      if ( (NUM_LEDS % 170) > 0 )
+      {
+        universeReq++;
       }
-      FastLED.setBrightness(255);
-      FastLED.show();
+
+      uint16_t universe = htons(packet.universe);
+      uint16_t universeLast = universe + universeReq - 1;
+      uint16_t maxChannels = htons(packet.property_value_count) - 1;
+
+      if ( universe >= UNIVERSE_START ) 
+      {
+        // Calculate LED range to update
+        uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
+        uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
+
+        Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
+                  universe,                               // The Universe for this packet
+                  maxChannels,                            // Start code is ignored, we're interested in dimmer data
+                  e131.stats.num_packets,                 // Packet counter
+                  e131.stats.packet_errors,               // Packet error counter
+                  firstLed,                               // First LED to update
+                  lastLed-1,                              // Last LED to update
+                  packet.property_values[1],              // Dimmer data for Channel 1
+                  packet.property_values[2],              // Dimmer data for Channel 2
+                  packet.property_values[3]);             // Dimmer data for Channel 3
+
+        int j = 1;
+        for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
+        {
+          // Calculate channel
+          leds[i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
+          j += 3;
+        }
+
+        FastLED.setBrightness(255);
+        FastLED.show();
+      }
     }
   } else
   #endif

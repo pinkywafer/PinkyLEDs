@@ -56,4 +56,5 @@ Example pin config for DOIT ESP32 DEVKIT V1:
 
 #define OTApassword "OTApassword" //the password you will need to enter to upload remotely via the ArduinoIDE
 
+#define UNIVERSE_START 1  // first universe for E1.31
 #define CHANNEL_START 1  // number of first channel for E1.31
