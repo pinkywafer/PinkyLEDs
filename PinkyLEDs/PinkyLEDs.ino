@@ -190,8 +190,8 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 
 #endif
 #ifdef ENABLE_E131
-  #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
-    #warning "Requires FastLED 3.1 or later; check github for latest code."
+  #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3003002)
+    #warning "Requires FastLED 3.3.2 or later; check github for latest code."
   #endif
 #endif
 
@@ -298,7 +298,7 @@ char message_buff[100];
 WiFiClient espClient; //this needs to be unique for each controller
 PubSubClient client(espClient); //this needs to be unique for each controller
 #ifdef ENABLE_E131
-  ESPAsyncE131 e131(1);
+  ESPAsyncE131 e131(2);
 #endif
 
 void setup() {
@@ -655,16 +655,18 @@ void loop() {
         uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
         uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
 
-        Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
-                  universe,                               // The Universe for this packet
-                  maxChannels,                            // Start code is ignored, we're interested in dimmer data
-                  e131.stats.num_packets,                 // Packet counter
-                  e131.stats.packet_errors,               // Packet error counter
-                  firstLed,                               // First LED to update
-                  lastLed-1,                              // Last LED to update
-                  packet.property_values[1],              // Dimmer data for Channel 1
-                  packet.property_values[2],              // Dimmer data for Channel 2
-                  packet.property_values[3]);             // Dimmer data for Channel 3
+        #ifdef DEBUG
+          Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
+                    universe,                               // The Universe for this packet
+                    maxChannels,                            // Start code is ignored, we're interested in dimmer data
+                    e131.stats.num_packets,                 // Packet counter
+                    e131.stats.packet_errors,               // Packet error counter
+                    firstLed,                               // First LED to update
+                    lastLed-1,                              // Last LED to update
+                    packet.property_values[1],              // Dimmer data for Channel 1
+                    packet.property_values[2],              // Dimmer data for Channel 2
+                    packet.property_values[3]);             // Dimmer data for Channel 3
+        #endif
 
         int j = 1;
         for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
