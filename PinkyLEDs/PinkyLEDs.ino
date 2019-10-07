@@ -632,7 +632,7 @@ void loop() {
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
     #ifdef LED_BUILTIN
-      digitalWrite(BUILTIN_LED, LED_ON);
+      digitalWrite(LED_BUILTIN, LED_ON);
     #endif
     if (!e131.isEmpty()) {
       e131_packet_t packet;
