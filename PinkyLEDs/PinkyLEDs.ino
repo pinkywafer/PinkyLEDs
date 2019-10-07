@@ -432,6 +432,13 @@ void setup_wifi() {
   Serial.println(wifi_ssid);
 
   WiFi.mode(WIFI_STA);
+
+  #ifdef ESP32
+    WiFi.setHostname(DEVICE_NAME);
+  #else
+    WiFi.hostname(DEVICE_NAME);
+  #endif
+
   WiFi.begin(wifi_ssid, wifi_password);
 
   while ((WiFi.status() != WL_CONNECTED) && (WiFi.status() != WL_NO_SSID_AVAIL) && (WiFi.status() != WL_CONNECT_FAILED)) {
