@@ -42,7 +42,7 @@
   #include <RotaryEncoder.h>
 #endif
 
-#define VERSION "0.9.3"
+#define VERSION "0.9.4"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
@@ -207,16 +207,20 @@ CRGB leds[NUM_LEDS];
 bool startupMQTTconnect = true;
 
 #ifdef BRIGHTNESS_ENCODER_DT
+  volatile boolean brightnessEncoderChanged = false;
   RotaryEncoder brightnessEncoder(BRIGHTNESS_ENCODER_DT, BRIGHTNESS_ENCODER_CLK);
     void ICACHE_RAM_ATTR brightnessEncoderCallback(){
       brightnessEncoder.tick();
+      brightnessEncoderChanged = true;
     }
 #endif
 
 #ifdef SPEED_ENCODER_DT
+  volatile boolean animationSpeedEncoderChanged = false;
   RotaryEncoder animationSpeedEncoder(SPEED_ENCODER_DT, SPEED_ENCODER_CLK);
   void ICACHE_RAM_ATTR animationSpeedEncoderCallback() {
       animationSpeedEncoder.tick();
+      animationSpeedEncoderChanged = true;
   }
 #endif
 
@@ -641,10 +645,14 @@ void loop() {
     handleEffectButton();
   #endif
   #ifdef BRIGHTNESS_ENCODER_DT
-    brightnessFromEncoder();
+    if (brightnessEncoderChanged) {
+      brightnessFromEncoder();
+    }
   #endif
   #ifdef SPEED_ENCODER_DT
-    animationSpeedFromEncoder();
+    if (animationSpeedEncoderChanged) {
+      animationSpeedFromEncoder();
+    }
   #endif
   #ifdef ENABLE_E131
   if (setEffect == "E131" && setPower == "ON") {
