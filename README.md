@@ -1,4 +1,4 @@
-# PinkyLEDs v0.9.3
+# PinkyLEDs v0.9.4
 ## MQTT and E1.31 pixel driver for ESP8266 and ESP32
 Known working boards:
 * D1 mini
