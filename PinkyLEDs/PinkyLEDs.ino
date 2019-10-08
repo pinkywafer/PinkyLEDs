@@ -1,3 +1,17 @@
+/************************************************************************************************/
+/*      _____                                        |       ________  ______         ____
+ *      |    \                   |                   |       |         |     \       /    \
+ *      |     |   o              |                   |       |         |      \     |
+ *      |     |         _____    |   /   |       |   |       |         |       |    |
+ *      |____/    |   |/     \   |  /    |       |   |       |______   |       |     \____
+ *      |         |   |      |   | /     |       |   |       |         |       |          \
+ *      |         |   |      |   |/\     |       |   |       |         |       |           |
+ *      |         |   |      |   |  \     \_____/    |       |         |      /            |
+ *      |         |   |      |   |   \         /     |       |_______  |_____/      \_____/ 
+ *   \________________________________________/      |________________________________________/
+ */
+#define VERSION "0.9.4"
+
 #include <ArduinoJson.h>
 #ifdef ESP32
   #include <WiFi.h>
@@ -41,8 +55,6 @@
 #if defined(BRIGHTNESS_ENCODER_DT) || defined(SPEED_ENCODER_DT)
   #include <RotaryEncoder.h>
 #endif
-
-#define VERSION "0.9.4"
 
 #ifdef ARDUINO_ESP8266_NODEMCU
   #define HW_PLATFORM "NodeMCU"
@@ -377,14 +389,14 @@ void setup() {
       Serial.println(WiFi.hostname());
     #endif
   #endif
-  client.setServer(mqtt_server, mqtt_port); //CHANGE PORT HERE IF NEEDED
+  client.setServer(MQTT_BROKER, MQTT_PORT); //CHANGE PORT HERE IF NEEDED
   client.setCallback(callback);
   #ifdef DEBUG 
     Serial.println("MQTT Initialised"); 
   #endif
   ArduinoOTA.setPort(OTAport);
   ArduinoOTA.setHostname(DEVICE_NAME);
-  ArduinoOTA.setPassword((const char *)OTApassword);
+  ArduinoOTA.setPassword((const char *)OTA_PASSWORD);
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -443,7 +455,7 @@ void setup_wifi() {
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(wifi_ssid);
+  Serial.println(WIFI_SSID);
 
   WiFi.mode(WIFI_STA);
 
@@ -453,7 +465,7 @@ void setup_wifi() {
     WiFi.hostname(DEVICE_NAME);
   #endif
 
-  WiFi.begin(wifi_ssid, wifi_password);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while ((WiFi.status() != WL_CONNECTED) && (WiFi.status() != WL_NO_SSID_AVAIL) && (WiFi.status() != WL_CONNECT_FAILED)) {
     delay(500);
@@ -1217,7 +1229,7 @@ void reconnect() {
   if (millis() - mqttReconnectMillis >= 5000) {
     mqttReconnectMillis = millis();
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(DEVICE_NAME, mqtt_user, mqtt_password, LWTTOPIC, 0, true, "Offline")) { //)) {
+    if (client.connect(DEVICE_NAME, MQTT_USERNAME, MQTT_PASSWORD, LWTTOPIC, 0, true, "Offline")) { //)) {
       Serial.println("connected");
       client.publish(LWTTOPIC, "Online", true);
       #ifdef USE_DISCOVERY
@@ -1230,7 +1242,9 @@ void reconnect() {
         #endif
       #endif
       client.subscribe(mqttcommand);
-      client.subscribe(mqtt_group_topic);
+      #ifdef MQTT_GROUP_TOPIC
+        client.subscribe(MQTT_GROUP_TOPIC);
+      #endif
       #ifdef DEBUG 
         Serial.println("Subscribed to MQTT topics");
       #endif
