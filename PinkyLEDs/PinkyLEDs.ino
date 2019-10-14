@@ -10,7 +10,7 @@
  *      |         |   |      |   |   \         /     |       |_______  |_____/      \_____/ 
  *   \________________________________________/      |________________________________________/
  */
-#define VERSION "0.9.5"
+#define VERSION "0.10.0"
 
 #include <ArduinoJson.h>
 #ifdef ESP32
@@ -77,7 +77,34 @@
 #endif
 
 int OTAport = 8266;
+#ifdef USE_DISCOVERY
+  #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
+  #define DISCOVERY_BASE "{ \"unique_id\": \"PinkyLED_" DEVICE_NAME "\", \"device\":{\"identifiers\":\"" DEVICE_NAME \
+        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION_FULL \
+        "\"}, \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
+        "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
+        "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
+        "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
+        "\"effect\": \"true\", \"effect_list\": [\"Confetti\", \"Glitter\", \"Juggle\", \"Sinelon\", \"Solid\", " \
+        "\"Christmas\", \"Candy Cane\", \"Holly Jolly\", \"Valentine\", \"Lovey Day\", \"St Patty\", \"Easter\", " \
+        "\"USA\", \"Independence\", \"Go Blue\", \"Hail\", \"Touchdown\", \"Halloween\", \"Punkin\", \"Thanksgiving\", " \
+        "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
+        "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
+  #ifdef ENABLE_E131
+    #define DISCOVERY_E131 ",\"E131\""
+  #else
+    #define DISCOVERY_E131 ""
+  #endif
+  #ifdef AUDIO_REACTIVE_PIN
+    #define DISCOVERY_REACTIVE ",\"Audio Color\", \"Audio Level Rainbow\""
+    #define AUDIO_EFFECTS , "Audio Color", "Audio Level Rainbow"
+  #else
+    #define DISCOVERY_REACTIVE ""
+    #define AUDIO_EFFECTS
+  #endif
+  #define DISCOVERY_PAYLOAD DISCOVERY_BASE DISCOVERY_REACTIVE DISCOVERY_E131 "] }" 
 
+#endif
 const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,255,0},
                         {255,255,255}, {255,255,36}, {255,191,0}, {255,127,0}, {255,163,72},
                         {255,36,36}, {255,72,118}, {255,0,127}, {255,0,255}, {191,0,255},
@@ -91,7 +118,7 @@ const char effectList[][20] = {"Confetti", "Glitter", "Juggle", "Sinelon", "Soli
                         "Hail", "Touchdown", "Halloween", "Punkin", "Thanksgiving",
                         "Turkey Day", "BPM", "Cyclon Rainbow", "Dots", "Fire",
                         "Lightning", "Police All", "Police One", "Rainbow", "Glitter Rainbow",
-                        "Ripple", "Twinkle"};
+                        "Ripple", "Twinkle" AUDIO_EFFECTS};
 
 //palette for Turkey Day
 DEFINE_GRADIENT_PALETTE( bhw2_thanks_gp ) {
@@ -179,28 +206,6 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
 #define mqttcommand "cmnd/" DEVICE_NAME 
 #define mqttstate "stat/" DEVICE_NAME 
 #define LWTTOPIC "LWT/" DEVICE_NAME
-
-#ifdef USE_DISCOVERY
-  #define DISCOVERY_TOPIC "homeassistant/light/" DEVICE_NAME "/config"
-  #define DISCOVERY_BASE "{ \"unique_id\": \"PinkyLED_" DEVICE_NAME "\", \"device\":{\"identifiers\":\"" DEVICE_NAME \
-        "\", \"model\": \"generic\", \"manufacturer\": \"Pinkywafer\", \"name\": \"" DEVICE_NAME "\", \"sw_version\": \"" VERSION_FULL \
-        "\"}, \"name\": \"" DEVICE_NAME "\", \"platform\": \"mqtt\", \"schema\": \"json\", \"state_topic\": \"" mqttstate \
-        "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
-        "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
-        "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
-        "\"effect\": \"true\", \"effect_list\": [\"Confetti\", \"Glitter\", \"Juggle\", \"Sinelon\", \"Solid\", " \
-        "\"Christmas\", \"Candy Cane\", \"Holly Jolly\", \"Valentine\", \"Lovey Day\", \"St Patty\", \"Easter\", " \
-        "\"USA\", \"Independence\", \"Go Blue\", \"Hail\", \"Touchdown\", \"Halloween\", \"Punkin\", \"Thanksgiving\", " \
-        "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
-        "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
-  #ifdef ENABLE_E131
-    #define DISCOVERY_E131 ",\"E131\""
-  #else
-    #define DISCOVERY_E131 ""
-  #endif
-  #define DISCOVERY_PAYLOAD DISCOVERY_BASE DISCOVERY_E131 "] }" 
-
-#endif
 #ifdef ENABLE_E131
   #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3003002)
     #warning "Requires FastLED 3.3.2 or later; check github for latest code."
@@ -350,6 +355,13 @@ void setup() {
       #else
         animationSpeedEncoder.setPosition(animationSpeed / 5);
       #endif
+    #endif
+  #endif
+  #ifdef AUDIO_REACTIVE_PIN
+    pinMode(AUDIO_REACTIVE_PIN, INPUT);
+    #ifdef ESP32
+      analogReadResolution(10);
+      analogSetWidth(10);
     #endif
   #endif
   #ifdef DEBUG 
@@ -710,8 +722,51 @@ void loop() {
     }
   } else
   #endif
+  #ifdef AUDIO_REACTIVE_PIN
+  if ((setEffect == "Audio Color" || setEffect == "Audio Level Rainbow") && setPower == "ON") {
+    unsigned int inputMax = 0;
+    unsigned int inputMin = 1024;
+    #ifdef ESP32
+      int average = 0;
+      for (unsigned int i = 0; i<300;i++){
+      average = analogRead(AUDIO_REACTIVE_PIN);
+      for (int i = 0; i < 20; i++) {
+        average = average + (analogRead(AUDIO_REACTIVE_PIN) - average) / 64;
+      }
+      inputMin = min(inputMin, (unsigned int) average);
+      inputMax = max(inputMax, (unsigned int) average);
+    }
+    #else
+      for (unsigned int i = 0; i<200;i++){
+        unsigned int inputSample = analogRead(AUDIO_REACTIVE_PIN);
+        inputMin = min(inputMin, inputSample);
+        inputMax = max(inputMax, inputSample);
+        yield();
+      }
+    #endif
+    if (setEffect == "Audio Color"){
+      int Rcolor = setRed;
+      int Gcolor = setGreen;
+      int Bcolor = setBlue;
+      fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
+      int level = constrain(map((inputMax-inputMin), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, -20, 250),0,250);
+      FastLED.setBrightness(level);
+      FastLED.show();
+    } else if (setEffect == "Audio Level Rainbow"){
+      static int hue = 0;
+      int level = constrain(map((inputMax-inputMin), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, NUM_LEDS / 2),0,NUM_LEDS / 2);
+      FastLED.clear();
+      for ( int i = 0; i < level; i++) {
+        leds[i + (NUM_LEDS / 2)] = CHSV(hue+i, 255,255);
+        leds[(NUM_LEDS / 2) - i] = CHSV(hue+i, 255,255);
+      }
+      hue ++;
+      FastLED.setBrightness(brightness);
+      FastLED.show();
+    }
+  } else
+  #endif
   {
-  
     int Rcolor = setRed;
     int Gcolor = setGreen;
     int Bcolor = setBlue; 
