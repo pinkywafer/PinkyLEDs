@@ -10,7 +10,7 @@
  *      |         |   |      |   |   \         /     |       |_______  |_____/      \_____/ 
  *   \________________________________________/      |________________________________________/
  */
-#define VERSION "0.9.4"
+#define VERSION "0.9.5"
 
 #include <ArduinoJson.h>
 #ifdef ESP32
@@ -308,8 +308,6 @@ bool gReverseDirection = false;
 
 /********BPM**********/
 uint8_t gHue = 0;
-char message_buff[100];
-
 
 WiFiClient espClient; //this needs to be unique for each controller
 PubSubClient client(espClient); //this needs to be unique for each controller
