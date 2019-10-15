@@ -281,12 +281,6 @@ bool startupMQTTconnect = true;
 #endif
 
 /****************FOR CANDY CANE-like desings***************/
-//CRGBPalette16 currentPalettestriped; //for Candy Cane
-//CRGBPalette16 hailPalettestriped; //for Hail
-//CRGBPalette16 ThxPalettestriped; //for Thanksgiving
-//CRGBPalette16 HalloweenPalettestriped; //for Halloween
-//CRGBPalette16 HJPalettestriped; //for Holly Jolly
-//CRGBPalette16 IndPalettestriped; //for Independence
 CRGBPalette16 gPal; //for fire
 
 /*  EASTER    ***************FOR NOISE - I'm using this one for Easter***************/
