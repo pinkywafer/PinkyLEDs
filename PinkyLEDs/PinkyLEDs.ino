@@ -12,6 +12,42 @@
  */
 #define VERSION "0.10.1"
 
+String (*effect[])(boolean initialize){
+  confettiColorEffect,
+  glitterColorEffect,
+  juggleColorEffect,
+  sinelonColorEffect,
+  christmasEffect,
+  candyCaneEffect,
+  hollyJollyEffect,
+  valentineEffect,
+  loveyDayEffect,
+  stPatEffect,
+  easterEffect,
+  usaEffect,
+  independenceEffect,
+  goBlueEffect,
+  hailEffect,
+  touchdownEffect,
+  halloweenEffect,
+  punkinEffect,
+  thanksgivingEffect,
+  turkeyDayEffect,
+  bpmEffect,
+  cyclonRainbowEffect,
+  dotsEffect,
+  fireEffect,
+  lightningEffect,
+  policeAllEffect,
+  policeOneEffect,
+  rainbowEffect,
+  glitterRainbowEffect,
+  rippleEffect,
+  twinkleEffect
+};
+
+
+
 #include <ArduinoJson.h>
 #ifdef ESP32
   #include <WiFi.h>
@@ -120,6 +156,7 @@ const char effectList[][20] = {"Confetti", "Glitter", "Juggle", "Sinelon", "Soli
                         "Lightning", "Police All", "Police One", "Rainbow", "Glitter Rainbow",
                         "Ripple", "Twinkle" AUDIO_EFFECTS};
 
+String effectNames[sizeof(effect) / sizeof(effect[0])];
 //palette for Turkey Day
 DEFINE_GRADIENT_PALETTE( bhw2_thanks_gp ) {
   0,   9,  5,  1,
@@ -212,6 +249,8 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
   #endif
 #endif
 
+boolean internalEffect = true;
+int newEffect = 0;
 char setRed = 0;
 char setGreen = 0;
 char setBlue = 150;
@@ -242,20 +281,20 @@ bool startupMQTTconnect = true;
 #endif
 
 /****************FOR CANDY CANE-like desings***************/
-CRGBPalette16 currentPalettestriped; //for Candy Cane
-CRGBPalette16 hailPalettestriped; //for Hail
-CRGBPalette16 ThxPalettestriped; //for Thanksgiving
-CRGBPalette16 HalloweenPalettestriped; //for Halloween
-CRGBPalette16 HJPalettestriped; //for Holly Jolly
-CRGBPalette16 IndPalettestriped; //for Independence
+//CRGBPalette16 currentPalettestriped; //for Candy Cane
+//CRGBPalette16 hailPalettestriped; //for Hail
+//CRGBPalette16 ThxPalettestriped; //for Thanksgiving
+//CRGBPalette16 HalloweenPalettestriped; //for Halloween
+//CRGBPalette16 HJPalettestriped; //for Holly Jolly
+//CRGBPalette16 IndPalettestriped; //for Independence
 CRGBPalette16 gPal; //for fire
 
-/****************FOR NOISE - I'm using this one for Easter***************/
+/*  EASTER    ***************FOR NOISE - I'm using this one for Easter***************/
 static uint16_t dist;         // A random number for our noise generator.
 uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
 uint8_t maxChanges = 48;      // Value for blending between palettes.
-CRGBPalette16 targetPalette(OceanColors_p);
-CRGBPalette16 currentPalette(CRGB::Black);
+//CRGBPalette16 targetPalette(OceanColors_p);
+//CRGBPalette16 currentPalette(CRGB::Black);
 
 /*****************For TWINKLE********/
 #define DENSITY     80
@@ -373,13 +412,18 @@ void setup() {
   #ifdef DEBUG 
     Serial.println("FastLED initialised"); 
   #endif
-  setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-  setupThxPalette( CRGB::OrangeRed, CRGB::Olive, CRGB::Maroon, CRGB::Maroon); //for Thanksgiving
-  setupHailPalette( CRGB::Blue, CRGB::Blue, CRGB::Yellow, CRGB::Yellow); //for HAIL
-  setupHalloweenPalette( CRGB::DarkOrange, CRGB::DarkOrange, CRGB::Indigo, CRGB::Indigo); //for Halloween
-  setupHJPalette( CRGB::Red, CRGB::Red, CRGB::Green, CRGB::Green); //for Holly Jolly
-  setupIndPalette( CRGB::FireBrick, CRGB::Cornsilk, CRGB::MediumBlue, CRGB::MediumBlue); //for Independence
-
+  //setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
+//  setupThxPalette( CRGB::OrangeRed, CRGB::Olive, CRGB::Maroon, CRGB::Maroon); //for Thanksgiving
+//  setupHailPalette( CRGB::Blue, CRGB::Blue, CRGB::Yellow, CRGB::Yellow); //for HAIL
+//  setupHalloweenPalette( CRGB::DarkOrange, CRGB::DarkOrange, CRGB::Indigo, CRGB::Indigo); //for Halloween
+ // setupHJPalette( CRGB::Red, CRGB::Red, CRGB::Green, CRGB::Green); //for Holly Jolly
+//  setupIndPalette( CRGB::FireBrick, CRGB::Cornsilk, CRGB::MediumBlue, CRGB::MediumBlue); //for Independence
+  for (int i = 0;i< sizeof(effect) / sizeof(effect[0]);i++){
+    effectNames[i] = effect[i](true);
+  }
+  for (int i = 0;i< sizeof(effect) / sizeof(effect[0]);i++){
+    Serial.println(effectNames[i]);
+  }
   gPal = HeatColors_p; //for FIRE
   #ifdef DEBUG
     Serial.println("Palettes initialised");
@@ -560,8 +604,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
 
     if (root.containsKey("effect")) {
-      const char* newEffect = root["effect"];
-      setEffect = newEffect;
+      const char* getEffect = root["effect"];
+      setEffect = getEffect;
       #ifdef DEBUG 
         Serial.print("Effect Set: ");
         Serial.println(setEffect); 
@@ -571,6 +615,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
         #ifdef DEBUG 
           Serial.println("LEDs Cleared.  Ready for E1.31"); 
         #endif
+      }
+      if (setEffect == "E131" || setEffect == "Solid" || setEffect == "Audio Color" || setEffect == "Audio Level Rainbow"){
+        internalEffect = true;
+        Serial.println("Internal Effect Set");
+      } else {
+        internalEffect = false;
+        ///////////////////////   lookup effect
+        for (int i = 0; i< sizeof(effect) / sizeof(effect[0]);i++){
+          if (setEffect == effectNames[i]){
+            newEffect = i;
+          }
+        }
       }
       if ((setEffect == "Twinkle")||(setEffect == "Lightning")) {
         twinklecounter = 0;
@@ -683,6 +739,7 @@ void loop() {
       digitalWrite(BUILTIN_LED, LED_ON);
     #endif
     if (!e131->isEmpty()) {
+      Serial.println("good");
       e131_packet_t packet;
       e131->pull(&packet);     // Pull packet from ring buffer
       
@@ -774,7 +831,6 @@ void loop() {
     static bool flashOff = false;
     
     if (setPower == "OFF") {
-      //setEffect = "Solid";
       #ifdef BUILTIN_LED
         digitalWrite(BUILTIN_LED, LED_OFF);
       #endif
@@ -795,367 +851,12 @@ void loop() {
         flashOff = false;
       }
 
-      if (setEffect == "Christmas") {                                  // colored stripes pulsing in Shades of GREEN and RED
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = bhw2_xmas_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "St Patty") {                                  // colored stripes pulsing in Shades of GREEN
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = bhw2_greenman_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Valentine") {                                  // colored stripes pulsing in Shades of PINK and RED
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = bhw2_redrosey_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Turkey Day") {                                  // colored stripes pulsing in Shades of Brown and ORANGE
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = bhw2_thanks_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Thanksgiving") {                                  // colored stripes pulsing in Shades of Red and ORANGE and Green
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      ThxPalettestriped, 255, LINEARBLEND);
-      }
-
-      if (setEffect == "USA") {                                  // colored stripes pulsing in Shades of Red White & Blue
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = bhw3_41_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Independence") {                        // colored stripes of Red White & Blue
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      IndPalettestriped, 255, LINEARBLEND);
-      }
-
-
-      if (setEffect == "Halloween") {                                  // colored stripes pulsing in Shades of Purple and Orange
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = Orange_to_Purple_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Go Blue") {                                  // colored stripes pulsing in Shades of Maize and Blue
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = Pills_3_gp;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Hail") {
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      hailPalettestriped, 255, LINEARBLEND);
-      }
-
-      if (setEffect == "Touchdown") {                 //Maize and Blue with POLICE ALL animation
-        idex++;
-        if (idex >= NUM_LEDS) {
-          idex = 0;
-        }
-        int idexY = idex;
-        int idexB = antipodal_index(idexY);
-        int thathue = (thishuehail + 96) % 255;
-        leds[idexY] = CHSV(thishuehail, thissat, 255);
-        leds[idexB] = CHSV(thathue, thissat, 255);
-      }
-
-      if (setEffect == "Punkin") {
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      HalloweenPalettestriped, 255, LINEARBLEND);
-      }
-
-      if (setEffect == "Lovey Day") {                 //Valentine's Day colors (TWO COLOR SOLID)
-        idex++;
-        if (idex >= NUM_LEDS) {
-          idex = 0;
-        }
-        int idexR = idex;
-        int idexB = antipodal_index(idexR);
-        int thathue = (thishueLovey + 244) % 255;
-        leds[idexR] = CHSV(thishueLovey, thissat, 255);
-        leds[idexB] = CHSV(thathue, thissat, 255);
-      }
-
-      if (setEffect == "Holly Jolly") {
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      HJPalettestriped, 255, LINEARBLEND);
-      }
-
-      if (setEffect == "Sinelon") {
-        fadeToBlackBy( leds, NUM_LEDS, 20);
-        int pos = beatsin16(13, 0, NUM_LEDS - 1);
-        leds[pos] += CRGB(Rcolor, Gcolor, Bcolor);
-      }
-
-      if (setEffect == "Juggle" ) {                           // eight colored dots, weaving in and out of sync with each other
-        fadeToBlackBy( leds, NUM_LEDS, 20);
-        byte dothue = 0;
-        for ( int i = 0; i < 8; i++) {
-          leds[beatsin16(i + 7, 0, NUM_LEDS - 1)] |= CRGB(Rcolor, Gcolor, Bcolor);
-          dothue += 32;
-        }
-      }
-
-      if (setEffect == "Confetti" ) {                       // random colored speckles that blink in and fade smoothly
-        fadeToBlackBy( leds, NUM_LEDS, 10);
-        int pos = random16(NUM_LEDS);
-        leds[pos] += CRGB(Rcolor + random8(64), Gcolor, Bcolor);
-      }
-
-      if (setEffect == "Rainbow") {
-        // FastLED's built-in rainbow generator
-        static uint8_t starthue = 0;    thishue++;
-        fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-      }
-
-      if (setEffect == "Glitter Rainbow") {               // FastLED's built-in rainbow generator with Glitter
-        static uint8_t starthue = 0;
-        thishue++;
-        fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
-        addGlitter(80);
-      }
-
-      if (setEffect == "Glitter") {
-        fadeToBlackBy( leds, NUM_LEDS, 20);
-        addGlitterColor(80, Rcolor, Gcolor, Bcolor);
-      }
-
-      if (setEffect == "BPM") {                                  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-        uint8_t BeatsPerMinute = 62;
-        CRGBPalette16 palette = PartyColors_p;
-        uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-        for ( int i = 0; i < NUM_LEDS; i++) { //9948
-          leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-        }
-      }
-
-      if (setEffect == "Solid" & setPower == "ON" ) {          //Fill entire strand with solid color
+      if (!internalEffect) {
+        effect[newEffect](false);
+      } else if (setEffect == "Solid" ){
         fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
-      }
-
-
-
-      if (setEffect == "Twinkle") {
-        twinklecounter = twinklecounter + 1;
-        if (twinklecounter < 2) {                               //Resets strip if previous animation was running
-          FastLED.clear();
-          FastLED.show();
-        }
-        const CRGB lightcolor(8, 7, 1);
-        for ( int i = 0; i < NUM_LEDS; i++) {
-          if ( !leds[i]) continue; // skip black pixels
-          if ( leds[i].r & 1) { // is red odd?
-            leds[i] -= lightcolor; // darken if red is odd
-          } else {
-            leds[i] += lightcolor; // brighten if red is even
-          }
-        }
-        if ( random8() < DENSITY) {
-          int j = random16(NUM_LEDS);
-          if ( !leds[j] ) leds[j] = lightcolor;
-        }
-      }
-
-      if (setEffect == "Dots") {
-        uint16_t inner = beatsin16(bpm, NUM_LEDS / 4, NUM_LEDS / 4 * 3);
-        uint16_t outer = beatsin16(bpm, 0, NUM_LEDS - 1);
-        uint16_t middle = beatsin16(bpm, NUM_LEDS / 3, NUM_LEDS / 3 * 2);
-        leds[middle] = CRGB::Purple;
-        leds[inner] = CRGB::Blue;
-        leds[outer] = CRGB::Aqua;
-        nscale8(leds, NUM_LEDS, fadeval);
-      }
-
-      if (setEffect == "Lightning") {
-        twinklecounter = twinklecounter + 1;                     //Resets strip if previous animation was running
-        Serial.println(twinklecounter);
-        if (twinklecounter < 2) {
-          FastLED.clear();
-          FastLED.show();
-        }
+      } else {
         
-        ledstart = random16(NUM_LEDS);           // Determine starting location of flash
-        ledlen = random16(NUM_LEDS - ledstart);  // Determine length of flash (not to go beyond NUM_LEDS-1)
-        static unsigned int lightningFlashTime = 0;
-        static unsigned int lightningFlashDelay = 0;
-        if (millis() - lightningFlashTime >= lightningFlashDelay){
-          for (int lightningFlashCounter = 0; lightningFlashCounter < random8(3, flashes); lightningFlashCounter++) {
-            if (lightningFlashCounter == 0) dimmer = 5;    // the brightness of the leader is scaled down by a factor of 5
-            else dimmer = random8(1, 3);          // return strokes are brighter than the leader
-            fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 255 / dimmer));
-            FastLED.show();                       // Show a section of LED's
-            delay(random8(4, 10));                // each flash only lasts 4-10 milliseconds
-            fill_solid(leds + ledstart, ledlen, CHSV(255, 0, 0)); // Clear the section of LED's
-            FastLED.show();
-            if (lightningFlashCounter == 0) delay (150);   // longer delay until next flash after the leader
-            delay(50 + random8(100));             // shorter delay between strokes
-          }
-          lightningFlashDelay = random8(frequency) * 100;        // delay between strikes
-          lightningFlashTime = millis();
-        }
-      }
-
-      if (setEffect == "Police One") {                    //POLICE LIGHTS (TWO COLOR SINGLE LED)
-        idex++;
-        if (idex >= NUM_LEDS) {
-          idex = 0;
-        }
-        int idexR = idex;
-        int idexB = antipodal_index(idexR);
-        int thathue = (thishuepolice + 160) % 255;
-        for (int i = 0; i < NUM_LEDS; i++ ) {
-          if (i == idexR) {
-            leds[i] = CHSV(thishuepolice, thissat, 255);
-          }
-          else if (i == idexB) {
-            leds[i] = CHSV(thathue, thissat, 255);
-          }
-          else {
-            leds[i] = CHSV(0, 0, 0);
-          }
-        }
-
-      }
-
-      if (setEffect == "Police All") {                 //POLICE LIGHTS (TWO COLOR SOLID)
-        idex++;
-        if (idex >= NUM_LEDS) {
-          idex = 0;
-        }
-        int idexR = idex;
-        int idexB = antipodal_index(idexR);
-        int thathue = (thishuepolice + 160) % 255;
-        leds[idexR] = CHSV(thishuepolice, thissat, 255);
-        leds[idexB] = CHSV(thathue, thissat, 255);
-      }
-
-
-      if (setEffect == "Candy Cane") {
-        static uint8_t startIndex = 0;
-        startIndex = startIndex + 1; /* higher = faster motion */
-
-        fill_palette( leds, NUM_LEDS,
-                      startIndex, 16, /* higher = narrower stripes */
-                      currentPalettestriped, 255, LINEARBLEND);
-      }
-
-      if (setEffect == "Cyclon Rainbow") {
-        static uint8_t cyclonHue = 0;
-        static bool forwards = false;
-        for(int a = 0; a < NUM_LEDS; a++) {
-          leds[a].nscale8(250);
-        }
-        static int cyclonPos = 0;
-        if (forwards) {
-          if (cyclonPos < NUM_LEDS - 1){
-            leds[cyclonPos] = CHSV(cyclonHue++, 255,255);
-            cyclonPos++;
-          } else {
-            forwards = false;
-          }
-        } else {
-          if (cyclonPos >= 0) {
-            leds[cyclonPos] = CHSV(cyclonHue++, 255,255);
-            cyclonPos--;
-          } else {
-            forwards = true;
-          }
-        }
-      }
-      
-      if (setEffect == "Fire") {
-        Fire2012WithPalette();
-      }
-      random16_add_entropy( random8());
-
-      EVERY_N_MILLISECONDS(10) {
-        nblendPaletteTowardPalette(currentPalette, targetPalette, maxChanges);  // FOR NOISE ANIMATION
-        {
-          gHue++;
-        }
-
-        if (setEffect == "Easter") {
-          setPower = "ON";
-          for (int i = 0; i < NUM_LEDS; i++) {                                     // Just ONE loop to fill up the LED array as all of the pixels change.
-            uint8_t index = inoise8(i * scale, dist + i * scale) % 255;            // Get a value from the noise function. I'm using both x and y axis.
-            leds[i] = ColorFromPalette(currentPalette, index, 255, LINEARBLEND);   // With that value, look up the 8 bit colour palette value and assign it to the current LED.
-          }
-          dist += beatsin8(10, 1, 4);                                              // Moving along the distance (that random number we started out with). Vary it a bit with a sine wave.
-        }
-
-        if (setEffect == "Ripple") {
-          for (int i = 0; i < NUM_LEDS; i++) leds[i] = CHSV(bgcol++, 255, 15);  // Rotate background colour.
-          switch (step) {
-            case -1:                                                          // Initialize ripple variables.
-              center = random(NUM_LEDS);
-              colour = random8();
-              step = 0;
-              break;
-            case 0:
-              leds[center] = CHSV(colour, 255, 255);                          // Display the first pixel of the ripple.
-              step ++;
-              break;
-            case maxsteps:                                                    // At the end of the ripples.
-              step = -1;
-              break;
-            default:                                                             // Middle of the ripples.
-              leds[(center + step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, myfade / step * 2);   // Simple wrap from Marc Miller
-              leds[(center - step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, myfade / step * 2);
-              step ++;                                                         // Next step.
-              break;
-          }
-        }
-      }
-
-      EVERY_N_SECONDS(5) {
-        targetPalette = CRGBPalette16(CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)), CHSV(random8(), 192, random8(128, 255)), CHSV(random8(), 255, random8(128, 255)));
       }
     }
     if (flashOff){
@@ -1177,47 +878,47 @@ void loop() {
   }
 }
 
-void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  currentPalettestriped = CRGBPalette16(
-                            A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                          );
-}
+//void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  currentPalettestriped = CRGBPalette16(
+//                            A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
+//                          );
+//}
 
-void setupHailPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  hailPalettestriped = CRGBPalette16(
-                         A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                       );
-}
+//void setupHailPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  hailPalettestriped = CRGBPalette16(
+//                         A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
+//                       );
+//}
 
-void setupHJPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  HJPalettestriped = CRGBPalette16(
-                       A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                     );
-}
+//void setupHJPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  HJPalettestriped = CRGBPalette16(
+//                       A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
+//                     );
+//}
 
-void setupIndPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  IndPalettestriped = CRGBPalette16(
-                        A, A, A, A, A, AB, AB, AB, AB, AB, B, B, B, B, B, B
-                      );
-}
+//void setupIndPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  IndPalettestriped = CRGBPalette16(
+//                        A, A, A, A, A, AB, AB, AB, AB, AB, B, B, B, B, B, B
+//                      );
+//}
 
-void setupThxPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  ThxPalettestriped = CRGBPalette16(
-                        A, A, A, A, A, A, A, AB, AB, AB, B, B, B, B, B, B
-                      );
-}
+//void setupThxPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  ThxPalettestriped = CRGBPalette16(
+//                        A, A, A, A, A, A, A, AB, AB, AB, B, B, B, B, B, B
+//                      );
+//}
 
-void setupHalloweenPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-{
-  HalloweenPalettestriped = CRGBPalette16(
-                              A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-                            );
-}
+//void setupHalloweenPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
+//{
+//  HalloweenPalettestriped = CRGBPalette16(
+//                              A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
+//                            );
+//}
 
 void fadeall() {
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -1263,20 +964,20 @@ void Fire2012WithPalette()
 }
 
 
-void addGlitter( fract8 chanceOfGlitter)
+/*void addGlitter( fract8 chanceOfGlitter)
 {
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
-}
+}*/
 
-void addGlitterColor( fract8 chanceOfGlitter, int Rcolor, int Gcolor, int Bcolor)
+/*void addGlitterColor( fract8 chanceOfGlitter, int Rcolor, int Gcolor, int Bcolor)
 {
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB(Rcolor, Gcolor, Bcolor);
   }
 }
-
+*/
 
 void reconnect() {
   static unsigned long mqttReconnectMillis = 0;
