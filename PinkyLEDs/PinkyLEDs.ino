@@ -10,7 +10,7 @@
  *      |         |   |      |   |   \         /     |       |_______  |_____/      \_____/ 
  *   \________________________________________/      |________________________________________/
  */
-#define VERSION "0.10.0"
+#define VERSION "0.10.1"
 
 #include <ArduinoJson.h>
 #ifdef ESP32
@@ -442,10 +442,11 @@ void setup() {
   #endif
   #ifdef ENABLE_E131
     if ( (NUM_LEDS % 170) > 0 ){
-      universesRequired = (NUM_LEDS / 170);
-    } else {
       universesRequired = (NUM_LEDS / 170) + 1;
+    } else {
+      universesRequired = (NUM_LEDS / 170);
     }
+    Serial.println(universesRequired);
     e131 = new ESPAsyncE131(universesRequired);
     e131->begin(E131_UNICAST);
     #ifdef DEBUG 
