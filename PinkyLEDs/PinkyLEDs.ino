@@ -121,7 +121,7 @@ int OTAport = 8266;
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
         "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
-        "\"effect\": \"true\", \"effect_list\": [\"Confetti\", \"Glitter\", \"Juggle\", \"Sinelon\", \"Solid\", " \
+        "\"effect\": \"true\", \"effect_list\": [\"Confetti Color\", \"Glitter Color\", \"Juggle Color\", \"Sinelon Color\", \"Solid Color\", " \
         "\"Christmas\", \"Candy Cane\", \"Holly Jolly\", \"Valentine\", \"Lovey Day\", \"St Patty\", \"Easter\", " \
         "\"USA\", \"Independence\", \"Go Blue\", \"Hail\", \"Touchdown\", \"Halloween\", \"Punkin\", \"Thanksgiving\", " \
         "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
@@ -148,7 +148,7 @@ const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,
                         {72,72,255}, {0,63,255}, {36,91,255}, {109,145,255}, {0,127,255},
                         {72,163,255}, {0,191,255}, {72,209,255}, {36,255,255}, {109,255,255},
                         {255,109,109}, {163,72,255}};
-const char effectList[][20] = {"Confetti", "Glitter", "Juggle", "Sinelon", "Solid",
+const char effectList[][20] = {"Confetti Color", "Glitter Color", "Juggle Color", "Sinelon Color", "Solid Color",
                         "Christmas", "Candy Cane", "Holly Jolly", "Valentine", "Lovey Day",
                         "St Patty", "Easter", "USA", "Independence", "Go Blue",
                         "Hail", "Touchdown", "Halloween", "Punkin", "Thanksgiving",
@@ -255,7 +255,7 @@ char setRed = 0;
 char setGreen = 0;
 char setBlue = 150;
 String setPower = "OFF";
-String setEffect = "Solid";
+String setEffect = "Solid Color";
 int brightness = 150;
 int animationSpeed = 240;
 unsigned long flashTime = 0;
@@ -610,7 +610,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
           Serial.println("LEDs Cleared.  Ready for E1.31"); 
         #endif
       }
-      if (setEffect == "E131" || setEffect == "Solid" || setEffect == "Audio Color" || setEffect == "Audio Level Rainbow"){
+      if (setEffect == "E131" || setEffect == "Solid Color" || setEffect == "Audio Color" || setEffect == "Audio Level Rainbow"){
         internalEffect = true;
         Serial.println("Internal Effect Set");
       } else {
@@ -847,7 +847,7 @@ void loop() {
 
       if (!internalEffect) {
         effect[newEffect](false);
-      } else if (setEffect == "Solid" ){
+      } else if (setEffect == "Solid Color" ){
         fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
       } else {
         

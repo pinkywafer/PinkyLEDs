@@ -15,11 +15,11 @@ light:
   brightness: true
   effect: true
   effect_list:
-    - "Confetti"
-    - "Glitter"
-    - "Juggle"
-    - "Sinelon"
-    - "Solid"
+    - "Confetti Color"
+    - "Glitter Color"
+    - "Juggle Color"
+    - "Sinelon Color"
+    - "Solid Color"
     - "Christmas"
     - "Candy Cane"
     - "Holly Jolly"
@@ -47,4 +47,6 @@ light:
     - "Glitter Rainbow"
     - "Ripple"
     - "Twinkle"
+    - "Audio Color"
+    - "Audio Level Rainbow"
     - "E131"
