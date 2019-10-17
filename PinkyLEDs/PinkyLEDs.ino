@@ -10,9 +10,9 @@
  *      |         |   |      |   |   \         /     |       |_______  |_____/      \_____/ 
  *   \________________________________________/      |________________________________________/
  */
-#define VERSION "0.10.1"
+#define VERSION "0.11.0"
 
-String (*effect[])(boolean initialize){
+String (*externalEffect[])(boolean){
   confettiColorEffect,
   glitterColorEffect,
   juggleColorEffect,
@@ -121,24 +121,7 @@ int OTAport = 8266;
         "\", \"command_topic\": \"" mqttcommand "\", \"white_value\": \"" WHITE_VALUE "\", \"optimistic\": \"false\", " \
         "\"availability_topic\": \"" LWTTOPIC "\", \"payload_available\": \"Online\", \"payload_not_available\": \"Offline\", " \
         "\"rgb\": \"true\", \"flash_time_short\": \"1\", \"flash_time_long\": \"5\", \"brightness\": \"true\", " \
-        "\"effect\": \"true\", \"effect_list\": [\"Confetti Color\", \"Glitter Color\", \"Juggle Color\", \"Sinelon Color\", \"Solid Color\", " \
-        "\"Christmas\", \"Candy Cane\", \"Holly Jolly\", \"Valentine\", \"Lovey Day\", \"St Patty\", \"Easter\", " \
-        "\"USA\", \"Independence\", \"Go Blue\", \"Hail\", \"Touchdown\", \"Halloween\", \"Punkin\", \"Thanksgiving\", " \
-        "\"Turkey Day\", \"BPM\", \"Cyclon Rainbow\", \"Dots\", \"Fire\", \"Lightning\", \"Police All\", \"Police One\", " \
-        "\"Rainbow\", \"Glitter Rainbow\", \"Ripple\", \"Twinkle\""
-  #ifdef ENABLE_E131
-    #define DISCOVERY_E131 ",\"E131\""
-  #else
-    #define DISCOVERY_E131 ""
-  #endif
-  #ifdef AUDIO_REACTIVE_PIN
-    #define DISCOVERY_REACTIVE ",\"Audio Color\", \"Audio Level Rainbow\""
-    #define AUDIO_EFFECTS , "Audio Color", "Audio Level Rainbow"
-  #else
-    #define DISCOVERY_REACTIVE ""
-    #define AUDIO_EFFECTS
-  #endif
-  #define DISCOVERY_PAYLOAD DISCOVERY_BASE DISCOVERY_REACTIVE DISCOVERY_E131 "] }" 
+        "\"effect\": \"true\", \"effect_list\": ["
 
 #endif
 const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,255,0},
@@ -148,91 +131,21 @@ const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,
                         {72,72,255}, {0,63,255}, {36,91,255}, {109,145,255}, {0,127,255},
                         {72,163,255}, {0,191,255}, {72,209,255}, {36,255,255}, {109,255,255},
                         {255,109,109}, {163,72,255}};
-const char effectList[][20] = {"Confetti Color", "Glitter Color", "Juggle Color", "Sinelon Color", "Solid Color",
-                        "Christmas", "Candy Cane", "Holly Jolly", "Valentine", "Lovey Day",
-                        "St Patty", "Easter", "USA", "Independence", "Go Blue",
-                        "Hail", "Touchdown", "Halloween", "Punkin", "Thanksgiving",
-                        "Turkey Day", "BPM", "Cyclon Rainbow", "Dots", "Fire",
-                        "Lightning", "Police All", "Police One", "Rainbow", "Glitter Rainbow",
-                        "Ripple", "Twinkle" AUDIO_EFFECTS};
-
-String effectNames[sizeof(effect) / sizeof(effect[0])];
-//palette for Turkey Day
-DEFINE_GRADIENT_PALETTE( bhw2_thanks_gp ) {
-  0,   9,  5,  1,
-  48,  25,  9,  1,
-  76, 137, 27,  1,
-  96,  98, 42,  1,
-  124, 144, 79,  1,
-  153,  98, 42,  1,
-  178, 137, 27,  1,
-  211,  23,  9,  1,
-  255,   9,  5,  1
+String (*builtInEffect[])(boolean){
+  #ifdef AUDIO_REACTIVE_PIN
+    audioColorEffect,
+    audioLevelRainbowEffect,
+  #endif
+  solidEffect
+  #ifdef ENABLE_E131
+    , E131Effect
+  #endif
 };
 
-//palette for Valentine
-DEFINE_GRADIENT_PALETTE( bhw2_redrosey_gp ) {
-  0, 103,  1, 10,
-  33, 109,  1, 12,
-  76, 159,  5, 48,
-  119, 175, 55, 103,
-  127, 175, 55, 103,
-  178, 159,  5, 48,
-  221, 109,  1, 12,
-  255, 103,  1, 10
-};
+const int noOfExternalEffects = sizeof(externalEffect) / sizeof(externalEffect[0]);
+const int noOfBuiltInEffects = sizeof(builtInEffect) / sizeof(builtInEffect[0]);
 
-//palette for Christmas
-DEFINE_GRADIENT_PALETTE( bhw2_xmas_gp ) {
-  0,   0, 12,  0,
-  40,   0, 55,  0,
-  66,   1, 117,  2,
-  77,   1, 84,  1,
-  81,   0, 55,  0,
-  119,   0, 12,  0,
-  153,  42,  0,  0,
-  181, 121,  0,  0,
-  204, 255, 12,  8,
-  224, 121,  0,  0,
-  244,  42,  0,  0,
-  255,  42,  0,  0
-};
-
-//palette for USA
-DEFINE_GRADIENT_PALETTE( bhw3_41_gp ) {
-  0,   0,  0, 45,
-  71,   7, 12, 255,
-  76,  75, 91, 255,
-  76, 255, 255, 255,
-  81, 255, 255, 255,
-  178, 255, 255, 255,
-  179, 255, 55, 45,
-  196, 255,  0,  0,
-  255,  42,  0,  0
-};
-
-//palette for St Patty
-DEFINE_GRADIENT_PALETTE( bhw2_greenman_gp ) {
-  0,   1, 22,  1,
-  130,   1, 168,  2,
-  255,   1, 22,  1
-};
-
-//palette for Go Blue
-DEFINE_GRADIENT_PALETTE( Pills_3_gp ) {
-  0,   4, 12, 122,
-  127,  55, 58, 50,
-  255, 192, 147, 11
-};
-
-//palette for Halloween
-DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
-  0, 208, 50,  1,
-  127, 146, 27, 45,
-  255,  97, 12, 178
-};
-
-/****************************** MQTT TOPICS (change these topics as you wish)  ***************************************/
+/***** MQTT TOPICS ********************/
 #ifdef USE_WHITE_BALANCE_FOR_SPEED
   #define SPEEDTOPIC "white_value"
   #define WHITE_VALUE "true"
@@ -249,13 +162,13 @@ DEFINE_GRADIENT_PALETTE( Orange_to_Purple_gp ) {
   #endif
 #endif
 
-boolean internalEffect = true;
+//boolean internalEffect = true;
 int newEffect = 0;
 char setRed = 0;
 char setGreen = 0;
 char setBlue = 150;
 String setPower = "OFF";
-String setEffect = "Solid Color";
+//String setEffect;
 int brightness = 150;
 int animationSpeed = 240;
 unsigned long flashTime = 0;
@@ -279,73 +192,6 @@ bool startupMQTTconnect = true;
       animationSpeedEncoderChanged = true;
   }
 #endif
-
-/****************FOR CANDY CANE-like desings***************/
-CRGBPalette16 gPal; //for fire
-
-/*  EASTER    ***************FOR NOISE - I'm using this one for Easter***************/
-static uint16_t dist;         // A random number for our noise generator.
-uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
-uint8_t maxChanges = 48;      // Value for blending between palettes.
-//CRGBPalette16 targetPalette(OceanColors_p);
-//CRGBPalette16 currentPalette(CRGB::Black);
-
-/*****************For TWINKLE********/
-#define DENSITY     80
-int twinklecounter = 0;
-
-/*********FOR RIPPLE***********/
-uint8_t colour;                                               // Ripple colour is randomized.
-int center = 0;                                               // Center of the current ripple.
-int step = -1;                                                // -1 is the initializing step.
-uint8_t myfade = 255;                                         // Starting brightness.
-#define maxsteps 16                                           // Case statement wouldn't allow a variable.
-uint8_t bgcol = 0;                                            // Background colour rotates.
-int thisdelay = 20;                                           // Standard delay value.
-
-/**************FOR RAINBOW***********/
-uint8_t thishue = 0;                                          // Starting hue value.
-uint8_t deltahue = 10;
-
-/**************FOR DOTS**************/
-uint8_t   count =   0;                                        // Count up to 255 and then reverts to 0
-uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
-uint8_t bpm = 30;
-
-/**************FOR LIGHTNING**************/
-uint8_t frequency = 50;                                       // controls the interval between strikes
-uint8_t flashes = 8;                                          //the upper limit of flashes per strike
-unsigned int dimmer = 1;
-uint16_t ledstart;                                            // Starting location of a flash
-uint16_t ledlen;
-int lightningcounter = 0;
-
-/********FOR FUNKBOX EFFECTS**********/
-int idex = 0;                //-LED INDEX (0 to NUM_LEDS-1
-int TOP_INDEX = int(NUM_LEDS / 2);
-int thissat = 255;           //-FX LOOPS DELAY VAR
-
-//////////////////add thishue__ for Police All custom effects here/////////////////////////////////////////////////////////
-/////////////////use hsv Hue number for one color, for second color change "thishue__ + __" in the setEffect section//////
-
-uint8_t thishuepolice = 0;
-uint8_t thishuehail = 64;
-uint8_t thishueLovey = 0;
-int antipodal_index(int i) {
-  int iN = i + TOP_INDEX;
-  if (i >= TOP_INDEX) {
-    iN = ( i + TOP_INDEX ) % NUM_LEDS;
-  }
-  return iN;
-}
-
-/********FIRE**********/
-#define COOLING  55
-#define SPARKING 120
-bool gReverseDirection = false;
-
-/********BPM**********/
-uint8_t gHue = 0;
 
 WiFiClient espClient; //this needs to be unique for each controller
 PubSubClient client(espClient); //this needs to be unique for each controller
@@ -406,23 +252,16 @@ void setup() {
   #ifdef DEBUG 
     Serial.println("FastLED initialised"); 
   #endif
-  //setupStripedPalette( CRGB::Red, CRGB::Red, CRGB::White, CRGB::White); //for CANDY CANE
-//  setupThxPalette( CRGB::OrangeRed, CRGB::Olive, CRGB::Maroon, CRGB::Maroon); //for Thanksgiving
-//  setupHailPalette( CRGB::Blue, CRGB::Blue, CRGB::Yellow, CRGB::Yellow); //for HAIL
-//  setupHalloweenPalette( CRGB::DarkOrange, CRGB::DarkOrange, CRGB::Indigo, CRGB::Indigo); //for Halloween
- // setupHJPalette( CRGB::Red, CRGB::Red, CRGB::Green, CRGB::Green); //for Holly Jolly
-//  setupIndPalette( CRGB::FireBrick, CRGB::Cornsilk, CRGB::MediumBlue, CRGB::MediumBlue); //for Independence
-  for (int i = 0;i< sizeof(effect) / sizeof(effect[0]);i++){
-    effectNames[i] = effect[i](true);
+  // initially set to solid color (if it is defined)
+  for (int i = 0;i< noOfBuiltInEffects;i++){
+    if (builtInEffect[i](true) == "Solid Color"){
+      newEffect = i + noOfExternalEffects;
+    }
   }
-  for (int i = 0;i< sizeof(effect) / sizeof(effect[0]);i++){
-    Serial.println(effectNames[i]);
-  }
-  gPal = HeatColors_p; //for FIRE
   #ifdef DEBUG
     Serial.println("Palettes initialised");
   #endif
-  fill_solid(leds, NUM_LEDS, CRGB(255, 0, 0)); //Startup LED Lights
+  fill_solid(leds, NUM_LEDS, CRGB(255, 0, 0)); // Startup LED Lights
   FastLED.show();
   #ifdef DEBUG 
     Serial.println("Initial setup complete - LEDs on RED"); 
@@ -599,34 +438,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     if (root.containsKey("effect")) {
       const char* getEffect = root["effect"];
-      setEffect = getEffect;
+      String setEffect = getEffect;
       #ifdef DEBUG 
         Serial.print("Effect Set: ");
         Serial.println(setEffect); 
       #endif
-      if (setEffect == "E131") {
-        FastLED.clear(true);
-        #ifdef DEBUG 
-          Serial.println("LEDs Cleared.  Ready for E1.31"); 
-        #endif
-      }
-      if (setEffect == "E131" || setEffect == "Solid Color" || setEffect == "Audio Color" || setEffect == "Audio Level Rainbow"){
-        internalEffect = true;
-        Serial.println("Internal Effect Set");
-      } else {
-        internalEffect = false;
-        ///////////////////////   lookup effect
-        for (int i = 0; i< sizeof(effect) / sizeof(effect[0]);i++){
-          if (setEffect == effectNames[i]){
+      for (int i = 0; i< noOfExternalEffects+noOfBuiltInEffects;i++){
+        if (i < noOfExternalEffects){
+          if (setEffect == externalEffect[i](true)){
             newEffect = i;
+            break;
+          }
+        } else {
+          if (setEffect == builtInEffect[i-noOfExternalEffects](true)){
+            newEffect = i;
+            break;
           }
         }
-      }
-      if ((setEffect == "Twinkle")||(setEffect == "Lightning")) {
-        twinklecounter = 0;
-        #ifdef DEBUG
-          Serial.println("Twinkle Counter reset"); 
-        #endif
       }
     }
 
@@ -680,7 +508,11 @@ void publishState() {
   color["g"] = setGreen;
   color["b"] = setBlue;
   root["brightness"] = brightness;
-  root["effect"] = setEffect; 
+  if (newEffect < noOfExternalEffects){
+    root["effect"] = externalEffect[newEffect](true); 
+  } else {
+    root["effect"] = builtInEffect[newEffect-noOfExternalEffects](true); 
+  }
   root[SPEEDTOPIC] = animationSpeed;
   if (flashTime > 0){
     root["flash"] = flashTime / 1000;
@@ -701,9 +533,7 @@ void publishState() {
 void loop() {
 
   if (!client.connected()) {
-    //Serial.println("MQTT Disconnected...");
     reconnect();
-    //Serial.println("MQTT Connection attempt complete");
   } else {
     client.loop();
   }
@@ -727,192 +557,56 @@ void loop() {
       animationSpeedFromEncoder();
     }
   #endif
-  #ifdef ENABLE_E131
-  if (setEffect == "E131" && setPower == "ON") {
+  
+  static bool flashOff = false;
+  static String effectParams = "";  
+  if (setPower == "OFF") {
+    #ifdef BUILTIN_LED
+      digitalWrite(BUILTIN_LED, LED_OFF);
+    #endif
+    for ( int i = 0; i < NUM_LEDS; i++) {
+      leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
+    }
+  } else {
     #ifdef BUILTIN_LED
       digitalWrite(BUILTIN_LED, LED_ON);
     #endif
-    if (!e131->isEmpty()) {
-      Serial.println("good");
-      e131_packet_t packet;
-      e131->pull(&packet);     // Pull packet from ring buffer
-      
-      uint16_t universe = htons(packet.universe);
-      uint16_t universeLast = universe + universesRequired - 1;
-      uint16_t maxChannels = htons(packet.property_value_count) - 1;
-
-      if ( universe >= UNIVERSE_START ) 
-      {
-        // Calculate LED range to update
-        uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
-        uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
-
-        #ifdef DEBUG
-          Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
-                    universe,                               // The Universe for this packet
-                    maxChannels,                            // Start code is ignored, we're interested in dimmer data
-                    e131->stats.num_packets,                 // Packet counter
-                    e131->stats.packet_errors,               // Packet error counter
-                    firstLed,                               // First LED to update
-                    lastLed-1,                              // Last LED to update
-                    packet.property_values[1],              // Dimmer data for Channel 1
-                    packet.property_values[2],              // Dimmer data for Channel 2
-                    packet.property_values[3]);             // Dimmer data for Channel 3
-        #endif
-
-        int j = 1;
-        for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
-        {
-          // Calculate channel
-          leds[i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
-          j += 3;
-        }
-
-        FastLED.setBrightness(255);
-        FastLED.show();
-      }
-    }
-  } else
-  #endif
-  #ifdef AUDIO_REACTIVE_PIN
-  if ((setEffect == "Audio Color" || setEffect == "Audio Level Rainbow") && setPower == "ON") {
-    unsigned int inputMax = 0;
-    unsigned int inputMin = 1024;
-    #ifdef ESP32
-      int average = 0;
-      for (unsigned int i = 0; i<300;i++){
-      average = analogRead(AUDIO_REACTIVE_PIN);
-      for (int i = 0; i < 20; i++) {
-        average = average + (analogRead(AUDIO_REACTIVE_PIN) - average) / 64;
-      }
-      inputMin = min(inputMin, (unsigned int) average);
-      inputMax = max(inputMax, (unsigned int) average);
-    }
-    #else
-      for (unsigned int i = 0; i<200;i++){
-        unsigned int inputSample = analogRead(AUDIO_REACTIVE_PIN);
-        inputMin = min(inputMin, inputSample);
-        inputMax = max(inputMax, inputSample);
-        yield();
-      }
-    #endif
-    if (setEffect == "Audio Color"){
-      int Rcolor = setRed;
-      int Gcolor = setGreen;
-      int Bcolor = setBlue;
-      fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
-      int level = constrain(map((inputMax-inputMin), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, -20, 250),0,250);
-      FastLED.setBrightness(level);
-      FastLED.show();
-    } else if (setEffect == "Audio Level Rainbow"){
-      static int hue = 0;
-      int level = constrain(map((inputMax-inputMin), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, NUM_LEDS / 2),0,NUM_LEDS / 2);
-      FastLED.clear();
-      for ( int i = 0; i < level; i++) {
-        leds[i + (NUM_LEDS / 2)] = CHSV(hue+i, 255,255);
-        leds[(NUM_LEDS / 2) - i] = CHSV(hue+i, 255,255);
-      }
-      hue ++;
-      FastLED.setBrightness(brightness);
-      FastLED.show();
-    }
-  } else
-  #endif
-  {
-    int Rcolor = setRed;
-    int Gcolor = setGreen;
-    int Bcolor = setBlue; 
-    static bool flashOff = false;
-    
-    if (setPower == "OFF") {
-      #ifdef BUILTIN_LED
-        digitalWrite(BUILTIN_LED, LED_OFF);
-      #endif
-      for ( int i = 0; i < NUM_LEDS; i++) {
-        leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
+    static unsigned int flashDelay = 0;
+    if (flashTime > 0) {
+      if(millis()  - flashDelay >= flashTime) {
+        flashDelay = millis();
+        flashOff = !flashOff;
       }
     } else {
-      #ifdef BUILTIN_LED
-        digitalWrite(BUILTIN_LED, LED_ON);
-      #endif
-      static unsigned int flashDelay = 0;
-      if (flashTime > 0) {
-        if(millis()  - flashDelay >= flashTime) {
-          flashDelay = millis();
-          flashOff = !flashOff;
-        }
-      } else {
-        flashOff = false;
-      }
+      flashOff = false;
+    }
 
-      if (!internalEffect) {
-        effect[newEffect](false);
-      } else if (setEffect == "Solid Color" ){
-        fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
-      } else {
-        
-      }
-    }
-    if (flashOff){
-      FastLED.clear(true);
-    }else{
-      FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
-      FastLED.show();
-    }
-    
-    if (setPower == "OFF"){
-      FastLED.delay(10);
+  
+    if (newEffect < noOfExternalEffects){
+      effectParams = externalEffect[newEffect](false);
     } else {
-      if (animationSpeed > 0 && animationSpeed < 255) {  //Sets animation speed based on receieved value
-        FastLED.delay((255 - (animationSpeed - 1)) * 6);
-      } else if (animationSpeed == 0) {
-        FastLED.delay(1600);
-      }
+      effectParams = builtInEffect[newEffect-noOfExternalEffects](false);
     }
   }
+
+  if (flashOff){
+    FastLED.clear(true);
+  }else{
+    if (effectParams.indexOf("BR") < 0)
+      FastLED.setBrightness(brightness);  
+    FastLED.show();
+  }
+  
+  if (setPower == "OFF"){
+    FastLED.delay(10);
+  } else {
+    if (animationSpeed > 0 && animationSpeed < 255) {  //Sets animation speed based on receieved value
+      FastLED.delay((255 - (animationSpeed - 1)) * 6);
+    } else if (animationSpeed == 0) {
+      FastLED.delay(1600);
+    }
+  }  
 }
-
-//void setupStripedPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  currentPalettestriped = CRGBPalette16(
-//                            A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-//                          );
-//}
-
-//void setupHailPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  hailPalettestriped = CRGBPalette16(
-//                         A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-//                       );
-//}
-
-//void setupHJPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  HJPalettestriped = CRGBPalette16(
-//                       A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-//                     );
-//}
-
-//void setupIndPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  IndPalettestriped = CRGBPalette16(
-//                        A, A, A, A, A, AB, AB, AB, AB, AB, B, B, B, B, B, B
-//                      );
-//}
-
-//void setupThxPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  ThxPalettestriped = CRGBPalette16(
-//                        A, A, A, A, A, A, A, AB, AB, AB, B, B, B, B, B, B
-//                      );
-//}
-
-//void setupHalloweenPalette( CRGB A, CRGB AB, CRGB B, CRGB BA)
-//{
-//  HalloweenPalettestriped = CRGBPalette16(
-//                              A, A, A, A, A, A, A, A, B, B, B, B, B, B, B, B
-//                            );
-//}
 
 void fadeall() {
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -920,73 +614,47 @@ void fadeall() {
   }
 }
 
-void Fire2012WithPalette()
-{
-  // Array of temperature readings at each simulation cell
-  static byte heat[NUM_LEDS];
 
-  // Step 1.  Cool down every cell a little
-  for ( int i = 0; i < NUM_LEDS; i++) {
-    heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS) + 2));
-  }
-
-  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-  for ( int k = NUM_LEDS - 1; k >= 2; k--) {
-    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
-  }
-
-  // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-  if ( random8() < SPARKING ) {
-    int y = random8(7);
-    heat[y] = qadd8( heat[y], random8(160, 255) );
-  }
-
-  // Step 4.  Map from heat cells to LED colors
-  for ( int j = 0; j < NUM_LEDS; j++) {
-    // Scale the heat value from 0-255 down to 0-240
-    // for best results with color palettes.
-    byte colorindex = scale8( heat[j], 240);
-    CRGB color = ColorFromPalette( gPal, colorindex);
-    int pixelnumber;
-    if ( gReverseDirection ) {
-      pixelnumber = (NUM_LEDS - 1) - j;
-    } else {
-      pixelnumber = j;
-    }
-    leds[pixelnumber] = color;
-  }
-}
-
-
-/*void addGlitter( fract8 chanceOfGlitter)
-{
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
-  }
-}*/
-
-/*void addGlitterColor( fract8 chanceOfGlitter, int Rcolor, int Gcolor, int Bcolor)
-{
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB(Rcolor, Gcolor, Bcolor);
-  }
-}
-*/
 
 void reconnect() {
   static unsigned long mqttReconnectMillis = 0;
   if (millis() - mqttReconnectMillis >= 5000) {
     mqttReconnectMillis = millis();
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(DEVICE_NAME, MQTT_USERNAME, MQTT_PASSWORD, LWTTOPIC, 0, true, "Offline")) { //)) {
+    if (client.connect(DEVICE_NAME, MQTT_USERNAME, MQTT_PASSWORD, LWTTOPIC, 0, true, "Offline")) {
       Serial.println("connected");
       client.publish(LWTTOPIC, "Online", true);
       #ifdef USE_DISCOVERY
-        byte b[] = DISCOVERY_PAYLOAD;
+        String payload = DISCOVERY_BASE;
+        if (noOfExternalEffects > 0) {
+          for (int i = 0; i < noOfExternalEffects; i++){
+            payload += "\"" + externalEffect[i](true) + "\"";
+            if (i + 1 < noOfExternalEffects){
+              payload += ", ";
+            }
+          }
+          if (noOfExternalEffects > 0){
+            payload += ", ";
+          }
+        }
+        if (noOfBuiltInEffects > 0) {
+          for (int i = 0; i < noOfBuiltInEffects; i++){
+            payload += "\"" + builtInEffect[i](true) + "\"";
+            if (i + 1 < noOfBuiltInEffects){
+              payload += ", ";
+            }
+          }
+        }
+        payload += "] }";
+        byte b[payload.length()+1];
+        payload.getBytes(b, payload.length()+1);
         client.beginPublish(DISCOVERY_TOPIC,sizeof(b)-1,true);//){;
         client.write(b,sizeof(b)-1);
         client.endPublish();
-        #ifdef DEBUG 
+        #ifdef DEBUG
+          for (int i = 0; i<payload.length()+1;i++){
+          Serial.print((char) b[i]); }
+          Serial.println();
           Serial.println("Discovery message sent"); 
         #endif
       #endif
@@ -1085,20 +753,20 @@ void reconnect() {
       int effectButtonState = digitalRead(EFFECT_BUTTON_PIN);
       if (effectButtonState != lastEffectButtonState) { // button state has changed
         if (effectButtonState == LOW) { // button is pressed
-          setEffect = effectList[nextEffect];
-          if (setEffect == "Twinkle") {
-            twinklecounter = 0;
-          }
-          if (setEffect == "Lightning") {
-            twinklecounter = 0;
-          }
-          if (nextEffect + 1 >= (sizeof(effectList) / 20)){
-            nextEffect = 0;
-          } else {
-            nextEffect++;
-          }
-          Serial.print("Button press - Set Effect: " + String(setEffect));
-          Serial.println("Next Color index: " + String(nextEffect));
+            if (newEffect + 1 < noOfExternalEffects + noOfBuiltInEffects){
+              newEffect++;
+            } else {
+              newEffect = 0;
+            }
+            if (newEffect>=noOfExternalEffects){
+              if (builtInEffect[newEffect-noOfExternalEffects](true) == "E131"){
+                if (newEffect + 1 >= noOfExternalEffects + noOfBuiltInEffects){
+                  newEffect = 0;
+                }else{
+                  newEffect++;
+                }
+              }
+            }
           publishState();
         }
       }
@@ -1147,5 +815,136 @@ void reconnect() {
       animationSpeed = newPos;
       publishState();
     } 
+  }
+#endif
+
+String solidEffect(boolean initialize){
+  if (initialize){
+    return "Solid Color";
+  } else {
+    int Rcolor = setRed;
+    int Gcolor = setGreen;
+    int Bcolor = setBlue; 
+    fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
+    return "";
+  }
+}
+
+#ifdef ENABLE_E131
+  String E131Effect(boolean initialize){
+    static boolean clearStrip = false;
+    if (initialize){
+      clearStrip = true;
+      return "E131";
+    } else {
+      #ifdef BUILTIN_LED
+        digitalWrite(BUILTIN_LED, LED_ON);
+      #endif
+      if (clearStrip){
+        fill_solid(leds, NUM_LEDS, CRGB(0, 0, 0));
+        clearStrip = false;
+        FastLED.setBrightness(255);
+      }
+      if (!e131->isEmpty()) {
+        e131_packet_t packet;
+        e131->pull(&packet);     // Pull packet from ring buffer
+        
+        uint16_t universe = htons(packet.universe);
+        uint16_t universeLast = universe + universesRequired - 1;
+        uint16_t maxChannels = htons(packet.property_value_count) - 1;
+  
+        if ( universe >= UNIVERSE_START ) 
+        {
+          // Calculate LED range to update
+          uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
+          uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
+  
+          #ifdef DEBUG
+            Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
+                      universe,                               // The Universe for this packet
+                      maxChannels,                            // Start code is ignored, we're interested in dimmer data
+                      e131->stats.num_packets,                 // Packet counter
+                      e131->stats.packet_errors,               // Packet error counter
+                      firstLed,                               // First LED to update
+                      lastLed-1,                              // Last LED to update
+                      packet.property_values[1],              // Dimmer data for Channel 1
+                      packet.property_values[2],              // Dimmer data for Channel 2
+                      packet.property_values[3]);             // Dimmer data for Channel 3
+          #endif
+  
+          int j = 1;
+          for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
+          {
+            // Calculate channel
+            leds[i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
+            j += 3;
+          }
+  
+          //FastLED.setBrightness(255);
+          FastLED.show();
+        }
+      } 
+      return "BR";
+    }
+  }
+#endif
+
+#ifdef AUDIO_REACTIVE_PIN
+  int getAudioLevel(){
+    unsigned int inputMax = 0;
+    unsigned int inputMin = 1024;
+    #ifdef ESP32
+      int average = 0;
+      for (unsigned int i = 0; i<300;i++){
+      average = analogRead(AUDIO_REACTIVE_PIN);
+      for (int i = 0; i < 20; i++) {
+        average = average + (analogRead(AUDIO_REACTIVE_PIN) - average) / 64;
+      }
+      inputMin = min(inputMin, (unsigned int) average);
+      inputMax = max(inputMax, (unsigned int) average);
+    }
+    #else
+      for (unsigned int i = 0; i<200;i++){
+        unsigned int inputSample = analogRead(AUDIO_REACTIVE_PIN);
+        inputMin = min(inputMin, inputSample);
+        inputMax = max(inputMax, inputSample);
+        yield();
+      }
+    #endif
+    return inputMax-inputMin;
+  }
+
+  String audioColorEffect(boolean initialize){
+    if (initialize){
+    return "Audio Color";
+    } else {
+      int Rcolor = setRed;
+      int Gcolor = setGreen;
+      int Bcolor = setBlue;
+      fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
+      int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, -20, 250);
+      if (level < 0) level = 0;
+      if (level > 250) level = 250;
+      FastLED.setBrightness(level);
+      return "BR";
+    }
+  }
+
+  String audioLevelRainbowEffect(boolean initialize){
+    if (initialize){
+      return "Audio Level Rainbow";
+    } else {
+      static int hue = 0;
+      int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, NUM_LEDS / 2);
+      if (level < 0) level = 0;
+      if (level > NUM_LEDS / 2) level = NUM_LEDS / 2;
+      FastLED.clear();
+      for ( int i = 0; i < level; i++) {
+        leds[i + (NUM_LEDS / 2)] = CHSV(hue+i, 255,255);
+        leds[(NUM_LEDS / 2) - i] = CHSV(hue+i, 255,255);
+      }
+      hue ++;
+      return "";
+    }
   }
 #endif

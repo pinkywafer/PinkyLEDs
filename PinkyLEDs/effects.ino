@@ -1,10 +1,25 @@
+//palette for Christmas
+DEFINE_GRADIENT_PALETTE( christmas_palette ) {
+  0,   0, 12,  0,
+  40,   0, 55,  0,
+  66,   1, 117,  2,
+  77,   1, 84,  1,
+  81,   0, 55,  0,
+  119,   0, 12,  0,
+  153,  42,  0,  0,
+  181, 121,  0,  0,
+  204, 255, 12,  8,
+  224, 121,  0,  0,
+  244,  42,  0,  0,
+  255,  42,  0,  0
+};
 String christmasEffect(boolean initialize){
   static uint8_t hue = 0;
   if (initialize){
     return "Christmas";
   } else {
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = bhw2_xmas_gp;
+    CRGBPalette16 palette = christmas_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, hue + (i * 2), beat - hue + (i * 10));
@@ -16,43 +31,83 @@ String christmasEffect(boolean initialize){
   }
 }
 
+//palette for St Patty
+DEFINE_GRADIENT_PALETTE( st_pat_palette ) {
+  0,   1, 22,  1,
+  130,   1, 168,  2,
+  255,   1, 22,  1
+};
 String stPatEffect(boolean initialize){
   if (initialize){
     return "St Patty";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = bhw2_greenman_gp;
+    CRGBPalette16 palette = st_pat_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
 }
 
+//palette for Valentine
+DEFINE_GRADIENT_PALETTE( valentine_palette ) {
+  0, 103,  1, 10,
+  33, 109,  1, 12,
+  76, 159,  5, 48,
+  119, 175, 55, 103,
+  127, 175, 55, 103,
+  178, 159,  5, 48,
+  221, 109,  1, 12,
+  255, 103,  1, 10
+};
 String valentineEffect(boolean initialize){
   if (initialize){
     return "Valentine";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = bhw2_redrosey_gp;
+    CRGBPalette16 palette = valentine_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
 }
 
+DEFINE_GRADIENT_PALETTE( turkey_day_palette ) {
+  0,   9,  5,  1,
+  48,  25,  9,  1,
+  76, 137, 27,  1,
+  96,  98, 42,  1,
+  124, 144, 79,  1,
+  153,  98, 42,  1,
+  178, 137, 27,  1,
+  211,  23,  9,  1,
+  255,   9,  5,  1
+};
 String turkeyDayEffect(boolean initialize){
   if (initialize){
     return "Turkey Day";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = bhw2_thanks_gp;
+    CRGBPalette16 palette = turkey_day_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
@@ -80,15 +135,31 @@ String thanksgivingEffect(boolean initialize){
   }
 }
 
+//palette for USA
+DEFINE_GRADIENT_PALETTE( usa_palette ) {
+  0,   0,  0, 45,
+  71,   7, 12, 255,
+  76,  75, 91, 255,
+  76, 255, 255, 255,
+  81, 255, 255, 255,
+  178, 255, 255, 255,
+  179, 255, 55, 45,
+  196, 255,  0,  0,
+  255,  42,  0,  0
+};
 String usaEffect(boolean initialize){
   if (initialize){
     return "USA";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = bhw3_41_gp;
+    CRGBPalette16 palette = usa_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
@@ -115,29 +186,49 @@ String independenceEffect(boolean initialize){
   }
 }
 
+//palette for Halloween
+DEFINE_GRADIENT_PALETTE( halloween_palette ) {
+  0, 208, 50,  1,
+  127, 146, 27, 45,
+  255,  97, 12, 178
+};
 String halloweenEffect(boolean initialize){
   if (initialize){
     return "Halloween";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = Orange_to_Purple_gp;
+    CRGBPalette16 palette = halloween_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
 }
 
+//palette for Go Blue
+DEFINE_GRADIENT_PALETTE( go_blue_palette ) {
+  0,   4, 12, 122,
+  127,  55, 58, 50,
+  255, 192, 147, 11
+};
 String goBlueEffect(boolean initialize){
   if (initialize){
     return "Go Blue";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = Pills_3_gp;
+    CRGBPalette16 palette = go_blue_palette;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+    }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
     }
     return "";  
   }
@@ -163,6 +254,7 @@ String hailEffect(boolean initialize){
 }
 
 String touchdownEffect(boolean initialize){
+  static int idex = 0;
   if (initialize){
     return "Touchdown";
   } else {
@@ -171,10 +263,14 @@ String touchdownEffect(boolean initialize){
       idex = 0;
     }
     int idexY = idex;
-    int idexB = antipodal_index(idexY);
-    int thathue = (thishuehail + 96) % 255;
-    leds[idexY] = CHSV(thishuehail, thissat, 255);
-    leds[idexB] = CHSV(thathue, thissat, 255);
+    int idexB;
+    if (idexY >= (NUM_LEDS / 2)) {
+      idexB = ( idexY + NUM_LEDS / 2 ) % NUM_LEDS;
+    } else {
+      idexB = idexY + (NUM_LEDS / 2);
+    }
+    leds[idexY] = CHSV(64, 255, 255);
+    leds[idexB] = CHSV(160, 255, 255);
     return "";  
   }
 }
@@ -198,6 +294,7 @@ String punkinEffect(boolean initialize){
   }
 }
 String loveyDayEffect(boolean initialize){
+  static int idex = 0;
   if (initialize){
     return "Lovey Day";
   } else {
@@ -206,10 +303,14 @@ String loveyDayEffect(boolean initialize){
       idex = 0;
     }
     int idexR = idex;
-    int idexB = antipodal_index(idexR);
-    int thathue = (thishueLovey + 244) % 255;
-    leds[idexR] = CHSV(thishueLovey, thissat, 255);
-    leds[idexB] = CHSV(thathue, thissat, 255);
+    int idexB;
+    if (idexR >= (NUM_LEDS / 2)) {
+      idexB = ( idexR + NUM_LEDS / 2 ) % NUM_LEDS;
+    } else {
+      idexB = idexR + (NUM_LEDS / 2);
+    }
+    leds[idexR] = CHSV(0, 255, 255);
+    leds[idexB] = CHSV(244, 255, 255);
     return "";  
   }
 }
@@ -278,35 +379,31 @@ String confettiColorEffect(boolean initialize){
 }
 
 String rainbowEffect(boolean initialize){
+  static uint8_t thishue;
   if (initialize){
+    thishue = 0;
     return "Rainbow";
   } else {
     // FastLED's built-in rainbow generator
     static uint8_t starthue = 0;    thishue++;
-    fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
+    fill_rainbow(leds, NUM_LEDS, thishue, 10);
     return "";  
   }
 }
 
-/*void addGlitter( fract8 chanceOfGlitter)
-{
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
-  }
-}*/
-
 String glitterRainbowEffect(boolean initialize){
+  static uint8_t thishue;
   if (initialize){
+    thishue = 0;
     return "Glitter Rainbow";
   } else {
     static uint8_t starthue = 0;
     thishue++;
-    fill_rainbow(leds, NUM_LEDS, thishue, deltahue);
+    fill_rainbow(leds, NUM_LEDS, thishue, 10);
     //add glitter
     if ( random8() < 80) { //chance of glitter = 80
       leds[ random16(NUM_LEDS) ] += CRGB::White;
     }
-    //addGlitter(80);
     return "";  
   }
 }
@@ -316,7 +413,6 @@ String glitterColorEffect(boolean initialize){
     return "Glitter Color";
   } else {
     fadeToBlackBy( leds, NUM_LEDS, 20);
-    //addGlitterColor(80, Rcolor, Gcolor, Bcolor);
     int Rcolor = setRed;
     int Gcolor = setGreen;
     int Bcolor = setBlue; 
@@ -331,21 +427,27 @@ String bpmEffect(boolean initialize){
   if (initialize){
     return "BPM";
   } else {
+    static uint8_t gHue = 0;
     uint8_t BeatsPerMinute = 62;
     CRGBPalette16 palette = PartyColors_p;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for ( int i = 0; i < NUM_LEDS; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
     }
+    EVERY_N_MILLISECONDS(10) {
+      gHue++;
+    }
     return "";  
   }
 }
 
 String twinkleEffect(boolean initialize){
+  static int twinklecounter;
   if (initialize){
+    twinklecounter = 0;
     return "Twinkle";
   } else {
-    twinklecounter = twinklecounter + 1;
+    twinklecounter++;
     if (twinklecounter < 2) {                               //Resets strip if previous animation was running
       FastLED.clear();
       FastLED.show();
@@ -359,7 +461,7 @@ String twinkleEffect(boolean initialize){
         leds[i] += lightcolor; // brighten if red is even
       }
     }
-    if ( random8() < DENSITY) {
+    if ( random8() < 80) { //twinkle density
       int j = random16(NUM_LEDS);
       if ( !leds[j] ) leds[j] = lightcolor;
     }
@@ -368,11 +470,17 @@ String twinkleEffect(boolean initialize){
 }
 
 String lightningEffect(boolean initialize){
+  const uint8_t flashes = 8;               //the upper limit of flashes per strike
+  static unsigned int dimmer;
+  uint16_t ledstart;
+  uint16_t ledlen;
+  static int twinklecounter;
   if (initialize){
+    twinklecounter = 0;
     return "Lightning";
   } else {
-    twinklecounter = twinklecounter + 1;
-    if (twinklecounter < 2) {                               //Resets strip if previous animation was running
+    twinklecounter++;
+    if (twinklecounter < 2) {       //Resets strip if previous animation was running
       FastLED.clear();
       FastLED.show();
     }
@@ -392,7 +500,7 @@ String lightningEffect(boolean initialize){
         if (lightningFlashCounter == 0) delay (150);   // longer delay until next flash after the leader
         delay(50 + random8(100));             // shorter delay between strokes
       }
-      lightningFlashDelay = random8(frequency) * 100;        // delay between strikes
+      lightningFlashDelay = random8(50) * 100;        // delay between strikes
       lightningFlashTime = millis();
     }
     return "";  
@@ -401,6 +509,7 @@ String lightningEffect(boolean initialize){
 
 
 String policeOneEffect(boolean initialize){
+  static int idex = 0;
   if (initialize){
     return "Police One";
   } else {
@@ -409,14 +518,18 @@ String policeOneEffect(boolean initialize){
       idex = 0;
     }
     int idexR = idex;
-    int idexB = antipodal_index(idexR);
-    int thathue = (thishuepolice + 160) % 255;
+    int idexB;
+    if (idexR >= (NUM_LEDS / 2)) {
+      idexB = ( idexR + NUM_LEDS / 2 ) % NUM_LEDS;
+    } else {
+      idexB = idexR + (NUM_LEDS / 2);
+    }
     for (int i = 0; i < NUM_LEDS; i++ ) {
       if (i == idexR) {
-        leds[i] = CHSV(thishuepolice, thissat, 255);
+        leds[i] = CHSV(0, 255, 255);
       }
       else if (i == idexB) {
-        leds[i] = CHSV(thathue, thissat, 255);
+        leds[i] = CHSV(160, 255, 255);
       }
       else {
         leds[i] = CHSV(0, 0, 0);
@@ -427,6 +540,7 @@ String policeOneEffect(boolean initialize){
 }
 
 String policeAllEffect(boolean initialize){
+  static int idex = 0;
   if (initialize){
     return "Police All";
   } else {
@@ -435,10 +549,14 @@ String policeAllEffect(boolean initialize){
       idex = 0;
     }
     int idexR = idex;
-    int idexB = antipodal_index(idexR);
-    int thathue = (thishuepolice + 160) % 255;
-    leds[idexR] = CHSV(thishuepolice, thissat, 255);
-    leds[idexB] = CHSV(thathue, thissat, 255);
+    int idexB;
+    if (idexR >= (NUM_LEDS / 2)) {
+      idexB = ( idexR + NUM_LEDS / 2 ) % NUM_LEDS;
+    } else {
+      idexB = idexR + (NUM_LEDS / 2);
+    }
+    leds[idexR] = CHSV(0, 255, 255);
+    leds[idexB] = CHSV(160, 255, 255);
     return "";  
   }
 }
@@ -493,14 +611,42 @@ String cyclonRainbowEffect(boolean initialize){
 }
 
 String fireEffect(boolean initialize){
+  static CRGBPalette16 gPal;
   if (initialize){
+      gPal = HeatColors_p; //FastLED built in palette
     return "Fire";
   } else {
-    Fire2012WithPalette();
+    // Array of temperature readings at each simulation cell
+    static byte heat[NUM_LEDS];
+    // Step 1.  Cool down every cell a little
+    for ( int i = 0; i < NUM_LEDS; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((55 * 10) / NUM_LEDS) + 2));
+    }
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for ( int k = NUM_LEDS - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if ( random8() < 120 ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160, 255) );
+    }
+    // Step 4.  Map from heat cells to LED colors
+    for ( int j = 0; j < NUM_LEDS; j++) {
+      // Scale the heat value from 0-255 down to 0-240
+      // for best results with color palettes.
+      byte colorindex = scale8( heat[j], 240);
+      CRGB color = ColorFromPalette( gPal, colorindex);
+      leds[j] = color;
+    }
     return "";  
   }
 }
+
 String easterEffect(boolean initialize){
+  const uint16_t scale = 30;          // Wouldn't recommend changing this on the fly, or the animation will be really blocky.
+  const uint8_t maxChanges = 48;      // Value for blending between palettes.
+  static uint16_t dist;         // A random number for our noise generator.
   static CRGBPalette16 targetPalette(OceanColors_p);
   static CRGBPalette16 currentPalette(CRGB::Black);
   if (initialize){
@@ -524,7 +670,13 @@ String easterEffect(boolean initialize){
 
 
 String rippleEffect(boolean initialize){
+  static uint8_t colour;     // Ripple colour is randomized.
+  static int center;         // Center of the current ripple.
+  static int step;                  // -1 is the initializing step.
+  static uint8_t bgcol;             // Background colour rotates.
   if (initialize){
+    step = -1;
+    bgcol = 0;
     return "Ripple";
   } else {
     EVERY_N_MILLISECONDS(10) {
@@ -539,12 +691,12 @@ String rippleEffect(boolean initialize){
           leds[center] = CHSV(colour, 255, 255);                        // Display the first pixel of the ripple.
           step ++;
           break;
-        case maxsteps:                                                   // At the end of the ripples.
+        case 16:                                                   // At the end of the ripples.
           step = -1;
           break;
         default:                                                             // Middle of the ripples.
-          leds[(center + step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, myfade / step * 2);   // Simple wrap from Marc Miller
-          leds[(center - step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, myfade / step * 2);
+          leds[(center + step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, 255 / step * 2);   // Simple wrap from Marc Miller
+          leds[(center - step + NUM_LEDS) % NUM_LEDS] += CHSV(colour, 255, 255 / step * 2);
           step ++;                                                         // Next step.
           break;
       }
@@ -553,8 +705,9 @@ String rippleEffect(boolean initialize){
   }
 }
 
-
 String dotsEffect(boolean initialize){
+  uint8_t bpm = 30;
+  uint8_t fadeval = 224;                                        // Trail behind the LED's. Lower => faster fade.
   if (initialize){
     return "Dots";
   } else {
