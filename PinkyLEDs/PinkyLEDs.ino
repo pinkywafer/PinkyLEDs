@@ -12,7 +12,9 @@
  */
 #define VERSION "0.11.0"
 
-String (*externalEffect[])(boolean){
+String (*externalEffect[])(char,bool){
+  // add your custom effects to this list
+  // this also sets the order of the effects list in Home Assistant
   confettiColorEffect,
   glitterColorEffect,
   juggleColorEffect,
@@ -46,7 +48,9 @@ String (*externalEffect[])(boolean){
   twinkleEffect
 };
 
-
+#define RUN 0
+#define INITIALIZE 1
+#define GET_NAME 2
 
 #include <ArduinoJson.h>
 #ifdef ESP32
@@ -131,7 +135,8 @@ const byte colorList[][3] = {{255,0,0}, {0,255,0}, {0,0,255}, {0,255,127}, {191,
                         {72,72,255}, {0,63,255}, {36,91,255}, {109,145,255}, {0,127,255},
                         {72,163,255}, {0,191,255}, {72,209,255}, {36,255,255}, {109,255,255},
                         {255,109,109}, {163,72,255}};
-String (*builtInEffect[])(boolean){
+
+String (*builtInEffect[])(char,bool){
   #ifdef AUDIO_REACTIVE_PIN
     audioColorEffect,
     audioLevelRainbowEffect,
@@ -162,18 +167,21 @@ const int noOfBuiltInEffects = sizeof(builtInEffect) / sizeof(builtInEffect[0]);
   #endif
 #endif
 
-//boolean internalEffect = true;
-int newEffect = 0;
+int newEffect = -1;
+int oldEffect = -1;
+bool powerChanged = false;
 char setRed = 0;
 char setGreen = 0;
 char setBlue = 150;
 String setPower = "OFF";
-//String setEffect;
 int brightness = 150;
 int animationSpeed = 240;
 unsigned long flashTime = 0;
-CRGB leds[NUM_LEDS];
+CRGB leds[2][NUM_LEDS];
+CRGB outputLEDS[NUM_LEDS];
 bool startupMQTTconnect = true;
+bool fadeDone = true;
+boolean useStrip = 0;
 
 #ifdef BRIGHTNESS_ENCODER_DT
   volatile boolean brightnessEncoderChanged = false;
@@ -193,8 +201,8 @@ bool startupMQTTconnect = true;
   }
 #endif
 
-WiFiClient espClient; //this needs to be unique for each controller
-PubSubClient client(espClient); //this needs to be unique for each controller
+WiFiClient espClient; 
+PubSubClient client(espClient);
 #ifdef ENABLE_E131
   uint16_t universesRequired;
   ESPAsyncE131* e131;
@@ -246,7 +254,7 @@ void setup() {
   #ifdef DEBUG 
     Serial.println("GPIO Setup complete");
   #endif
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(outputLEDS, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setMaxPowerInVoltsAndMilliamps(12, 10000); //experimental for power management. Feel free to try in your own setup.
   FastLED.setBrightness(brightness);
   #ifdef DEBUG 
@@ -254,14 +262,15 @@ void setup() {
   #endif
   // initially set to solid color (if it is defined)
   for (int i = 0;i< noOfBuiltInEffects;i++){
-    if (builtInEffect[i](true) == "Solid Color"){
+    if (builtInEffect[i](GET_NAME,0) == "Solid Color"){
       newEffect = i + noOfExternalEffects;
+      break;
     }
   }
   #ifdef DEBUG
     Serial.println("Palettes initialised");
   #endif
-  fill_solid(leds, NUM_LEDS, CRGB(255, 0, 0)); // Startup LED Lights
+  fill_solid(outputLEDS, NUM_LEDS, CRGB(255, 0, 0)); // Startup LED Lights
   FastLED.show();
   #ifdef DEBUG 
     Serial.println("Initial setup complete - LEDs on RED"); 
@@ -276,7 +285,7 @@ void setup() {
       Serial.println(WiFi.hostname());
     #endif
   #endif
-  client.setServer(MQTT_BROKER, MQTT_PORT); //CHANGE PORT HERE IF NEEDED
+  client.setServer(MQTT_BROKER, MQTT_PORT);
   client.setCallback(callback);
   #ifdef DEBUG 
     Serial.println("MQTT Initialised"); 
@@ -360,7 +369,7 @@ void setup_wifi() {
     Serial.print(".");
   }
   if (WiFi.status() == WL_CONNECTED) {
-    fill_solid(leds, NUM_LEDS, CRGB(255, 191, 0));
+    fill_solid(outputLEDS, NUM_LEDS, CRGB(255, 191, 0));
     FastLED.show();
     Serial.println("");
     Serial.println("WiFi connected");
@@ -400,7 +409,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     #endif
     if (root.containsKey("state")) {
       const char* power = root["state"];
-      setPower = power;
+      String spower = power;
+      if (spower != setPower){
+        setPower = power;
+        powerChanged = true;
+        fadeDone = false;
+        if (setPower == "ON"){
+          initializeEffect();
+        }
+      }
       #ifdef DEBUG 
         Serial.print("Power set: "); 
         Serial.println(setPower); 
@@ -443,18 +460,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
         Serial.print("Effect Set: ");
         Serial.println(setEffect); 
       #endif
-      for (int i = 0; i< noOfExternalEffects+noOfBuiltInEffects;i++){
-        if (i < noOfExternalEffects){
-          if (setEffect == externalEffect[i](true)){
-            newEffect = i;
-            break;
-          }
-        } else {
-          if (setEffect == builtInEffect[i-noOfExternalEffects](true)){
-            newEffect = i;
-            break;
-          }
-        }
+      int callEffect = findEffect(setEffect);
+      if (callEffect != newEffect) {
+        oldEffect = newEffect;
+        newEffect = callEffect;
+        useStrip = !useStrip;
+        Serial.println(useStrip);
+        initializeEffect();
+        fadeDone = false;
       }
     }
 
@@ -496,6 +509,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
   #endif
 }
 
+void initializeEffect(){
+  if (newEffect < noOfExternalEffects){
+    Serial.println(externalEffect[newEffect](INITIALIZE,useStrip));
+  } else {
+    builtInEffect[newEffect-noOfExternalEffects](INITIALIZE,useStrip);
+  }
+}
+
+int findEffect(String effectName){
+  for (int i = 0; i< noOfExternalEffects+noOfBuiltInEffects;i++){
+    if (i < noOfExternalEffects){
+      if (effectName == externalEffect[i](GET_NAME,0)){
+        return i;
+        break;
+      }
+    } else {
+      if (effectName == builtInEffect[i-noOfExternalEffects](GET_NAME,0)){
+        return i;
+        break;
+      }
+    }
+  }
+}
+
 void publishState() {
   StaticJsonBuffer<250> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
@@ -509,9 +546,9 @@ void publishState() {
   color["b"] = setBlue;
   root["brightness"] = brightness;
   if (newEffect < noOfExternalEffects){
-    root["effect"] = externalEffect[newEffect](true); 
+    root["effect"] = externalEffect[newEffect](GET_NAME,0); 
   } else {
-    root["effect"] = builtInEffect[newEffect-noOfExternalEffects](true); 
+    root["effect"] = builtInEffect[newEffect-noOfExternalEffects](GET_NAME,0); 
   }
   root[SPEEDTOPIC] = animationSpeed;
   if (flashTime > 0){
@@ -560,61 +597,74 @@ void loop() {
   
   static bool flashOff = false;
   static String effectParams = "";  
-  if (setPower == "OFF") {
-    #ifdef BUILTIN_LED
-      digitalWrite(BUILTIN_LED, LED_OFF);
-    #endif
-    for ( int i = 0; i < NUM_LEDS; i++) {
-      leds[i].fadeToBlackBy( 8 );   //FADE OFF LEDS
+  static int fadeVal = 255;
+  static unsigned int flashDelay = 0;
+  if (flashTime > 0) {
+    if(millis()  - flashDelay >= flashTime) {
+      flashDelay = millis();
+      flashOff = !flashOff;
     }
+  } else {
+    flashOff = false;
+  }
+  if (setPower == "OFF") {
+    powerOff(useStrip);
   } else {
     #ifdef BUILTIN_LED
       digitalWrite(BUILTIN_LED, LED_ON);
     #endif
-    static unsigned int flashDelay = 0;
-    if (flashTime > 0) {
-      if(millis()  - flashDelay >= flashTime) {
-        flashDelay = millis();
-        flashOff = !flashOff;
+    if (newEffect < noOfExternalEffects){
+      effectParams = externalEffect[newEffect](RUN,useStrip);
+    } else {
+      effectParams = builtInEffect[newEffect-noOfExternalEffects](RUN, useStrip);
+    }
+  }
+  
+  if (!fadeDone){
+    int fadeEffect = oldEffect;
+    if (powerChanged){
+      if (setPower == "ON"){
+        fadeEffect = -1;
+      } else {
+        fadeEffect = newEffect;
       }
     } else {
-      flashOff = false;
+      fadeEffect = oldEffect;
     }
-
-  
-    if (newEffect < noOfExternalEffects){
-      effectParams = externalEffect[newEffect](false);
+    if (fadeEffect == -1){
+      powerOff(!useStrip);
+    } else if (fadeEffect < noOfExternalEffects){
+      externalEffect[fadeEffect](RUN, !useStrip);
     } else {
-      effectParams = builtInEffect[newEffect-noOfExternalEffects](false);
+      builtInEffect[fadeEffect-noOfExternalEffects](RUN,!useStrip);
     }
+    static uint8_t fadeVal = 255;
+    static int fadeMillis = millis();
+    if (millis() > fadeMillis + 30){
+      fadeVal -=5;
+      fadeMillis = millis();
+    }
+    for (int i = 0; i<NUM_LEDS;i++){
+      outputLEDS[i] = blend(leds[useStrip][i], leds[!useStrip][i], fadeVal);
+    }
+    if (fadeVal == 0){
+      fill_solid( leds[!useStrip], NUM_LEDS, CRGB::Black);
+      fadeDone = true;
+      powerChanged = false;
+      fadeVal = 255;
+    }
+  } else {
+      memcpy(outputLEDS, leds[useStrip], sizeof(leds[useStrip][0])*NUM_LEDS);
   }
-
+  
   if (flashOff){
     FastLED.clear(true);
-  }else{
-    if (effectParams.indexOf("BR") < 0)
-      FastLED.setBrightness(brightness);  
-    FastLED.show();
   }
-  
-  if (setPower == "OFF"){
-    FastLED.delay(10);
-  } else {
-    if (animationSpeed > 0 && animationSpeed < 255) {  //Sets animation speed based on receieved value
-      FastLED.delay((255 - (animationSpeed - 1)) * 6);
-    } else if (animationSpeed == 0) {
-      FastLED.delay(1600);
-    }
-  }  
-}
-
-void fadeall() {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i].nscale8(250);  //for CYCLON
+  if (effectParams.indexOf("BR") < 0){
+    FastLED.setBrightness(brightness);  
   }
+  FastLED.show();
 }
-
-
 
 void reconnect() {
   static unsigned long mqttReconnectMillis = 0;
@@ -628,7 +678,7 @@ void reconnect() {
         String payload = DISCOVERY_BASE;
         if (noOfExternalEffects > 0) {
           for (int i = 0; i < noOfExternalEffects; i++){
-            payload += "\"" + externalEffect[i](true) + "\"";
+            payload += "\"" + externalEffect[i](GET_NAME,0) + "\"";
             if (i + 1 < noOfExternalEffects){
               payload += ", ";
             }
@@ -639,7 +689,7 @@ void reconnect() {
         }
         if (noOfBuiltInEffects > 0) {
           for (int i = 0; i < noOfBuiltInEffects; i++){
-            payload += "\"" + builtInEffect[i](true) + "\"";
+            payload += "\"" + builtInEffect[i](GET_NAME,0) + "\"";
             if (i + 1 < noOfBuiltInEffects){
               payload += ", ";
             }
@@ -671,7 +721,7 @@ void reconnect() {
         #ifdef DEBUG
           Serial.println("Subscribed to MQTT State topic"); 
         #endif
-        fill_solid(leds, NUM_LEDS, CRGB(0, 255, 0));
+        fill_solid(outputLEDS, NUM_LEDS, CRGB(0, 255, 0));
         FastLED.show();
         delay(500);
         FastLED.clear (true); //Turns off startup LEDs after connection is made
@@ -709,7 +759,10 @@ void reconnect() {
             setPower = "OFF";
           } else { //if off turn on
             setPower = "ON";
+            initializeEffect();
           }
+          powerChanged = true;
+          fadeDone = false;
           publishState();
           Serial.println("Button press - Set Power: " + setPower);
         }
@@ -745,7 +798,6 @@ void reconnect() {
 #endif
 #ifdef EFFECT_BUTTON_PIN
   void handleEffectButton() {
-    static int nextEffect = 0;
     static unsigned int effectDebounce = 0;
     static int lastEffectButtonState = HIGH;
     if (millis() - effectDebounce >= 50) { //avoid delay for debounce
@@ -753,13 +805,14 @@ void reconnect() {
       int effectButtonState = digitalRead(EFFECT_BUTTON_PIN);
       if (effectButtonState != lastEffectButtonState) { // button state has changed
         if (effectButtonState == LOW) { // button is pressed
+            oldEffect = newEffect;
             if (newEffect + 1 < noOfExternalEffects + noOfBuiltInEffects){
               newEffect++;
             } else {
               newEffect = 0;
             }
             if (newEffect>=noOfExternalEffects){
-              if (builtInEffect[newEffect-noOfExternalEffects](true) == "E131"){
+              if (builtInEffect[newEffect-noOfExternalEffects](GET_NAME,0) == "E131"){
                 if (newEffect + 1 >= noOfExternalEffects + noOfBuiltInEffects){
                   newEffect = 0;
                 }else{
@@ -767,6 +820,9 @@ void reconnect() {
                 }
               }
             }
+          useStrip = !useStrip;
+          initializeEffect();
+          fadeDone = false;
           publishState();
         }
       }
@@ -818,73 +874,80 @@ void reconnect() {
   }
 #endif
 
-String solidEffect(boolean initialize){
-  if (initialize){
-    return "Solid Color";
-  } else {
-    int Rcolor = setRed;
-    int Gcolor = setGreen;
-    int Bcolor = setBlue; 
-    fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
-    return "";
+String solidEffect(char mode, bool strip){
+  switch (mode){
+    case RUN: 
+      {
+        fill_solid(leds[strip], NUM_LEDS, CRGB(setRed, setGreen, setBlue));
+      }
+      return "";
+      break;
+    default:
+      return "Solid Color";
   }
 }
 
 #ifdef ENABLE_E131
-  String E131Effect(boolean initialize){
+  String E131Effect(char mode, bool strip){
     static boolean clearStrip = false;
-    if (initialize){
-      clearStrip = true;
-      return "E131";
-    } else {
-      #ifdef BUILTIN_LED
-        digitalWrite(BUILTIN_LED, LED_ON);
-      #endif
-      if (clearStrip){
-        fill_solid(leds, NUM_LEDS, CRGB(0, 0, 0));
-        clearStrip = false;
-        FastLED.setBrightness(255);
-      }
-      if (!e131->isEmpty()) {
-        e131_packet_t packet;
-        e131->pull(&packet);     // Pull packet from ring buffer
-        
-        uint16_t universe = htons(packet.universe);
-        uint16_t universeLast = universe + universesRequired - 1;
-        uint16_t maxChannels = htons(packet.property_value_count) - 1;
-  
-        if ( universe >= UNIVERSE_START ) 
+    switch (mode){
+      case RUN:
         {
-          // Calculate LED range to update
-          uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
-          uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
-  
-          #ifdef DEBUG
-            Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
-                      universe,                               // The Universe for this packet
-                      maxChannels,                            // Start code is ignored, we're interested in dimmer data
-                      e131->stats.num_packets,                 // Packet counter
-                      e131->stats.packet_errors,               // Packet error counter
-                      firstLed,                               // First LED to update
-                      lastLed-1,                              // Last LED to update
-                      packet.property_values[1],              // Dimmer data for Channel 1
-                      packet.property_values[2],              // Dimmer data for Channel 2
-                      packet.property_values[3]);             // Dimmer data for Channel 3
+          #ifdef BUILTIN_LED
+            digitalWrite(BUILTIN_LED, LED_ON);
           #endif
-  
-          int j = 1;
-          for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
-          {
-            // Calculate channel
-            leds[i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
-            j += 3;
+          if (clearStrip){
+            fill_solid(leds[strip], NUM_LEDS, CRGB(0, 0, 0));
+            clearStrip = false;
+            FastLED.setBrightness(255);
           }
-  
-          //FastLED.setBrightness(255);
-          FastLED.show();
+          if (!e131->isEmpty()) {
+            e131_packet_t packet;
+            e131->pull(&packet);     // Pull packet from ring buffer
+            
+            uint16_t universe = htons(packet.universe);
+            uint16_t universeLast = universe + universesRequired - 1;
+            uint16_t maxChannels = htons(packet.property_value_count) - 1;
+      
+            if ( universe >= UNIVERSE_START ) 
+            {
+              // Calculate LED range to update
+              uint16_t firstLed = ((universe - UNIVERSE_START) * 170);
+              uint16_t lastLed  = firstLed + (maxChannels / 3);  // -1
+      
+              #ifdef DEBUG
+                Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u / FirstLed: %3u/ LastLed: %3u / CH1: %3u / CH2: %3u / CH3: %3u\n",
+                          universe,                               // The Universe for this packet
+                          maxChannels,                            // Start code is ignored, we're interested in dimmer data
+                          e131->stats.num_packets,                 // Packet counter
+                          e131->stats.packet_errors,               // Packet error counter
+                          firstLed,                               // First LED to update
+                          lastLed-1,                              // Last LED to update
+                          packet.property_values[1],              // Dimmer data for Channel 1
+                          packet.property_values[2],              // Dimmer data for Channel 2
+                          packet.property_values[3]);             // Dimmer data for Channel 3
+              #endif
+      
+              int j = 1;
+              for (int i = firstLed; i < min(lastLed,(uint16_t)NUM_LEDS); i++)
+              {
+                // Calculate channel
+                leds[strip][i].setRGB(packet.property_values[j], packet.property_values[j + 1], packet.property_values[j + 2]);
+                j += 3;
+              }
+      
+              FastLED.setBrightness(255);
+            }
+          } 
         }
-      } 
-      return "BR";
+        return "BR";
+        break;
+      case INITIALIZE:
+        clearStrip = true;
+        return "E131";
+        break;
+      case GET_NAME:
+        return "E131";
     }
   }
 #endif
@@ -914,37 +977,58 @@ String solidEffect(boolean initialize){
     return inputMax-inputMin;
   }
 
-  String audioColorEffect(boolean initialize){
-    if (initialize){
-    return "Audio Color";
-    } else {
-      int Rcolor = setRed;
-      int Gcolor = setGreen;
-      int Bcolor = setBlue;
-      fill_solid(leds, NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
-      int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, -20, 250);
-      if (level < 0) level = 0;
-      if (level > 250) level = 250;
-      FastLED.setBrightness(level);
-      return "BR";
+  String audioColorEffect(char mode, bool strip){
+    switch (mode){
+      case RUN:
+        {
+          int Rcolor = setRed;
+          int Gcolor = setGreen;
+          int Bcolor = setBlue;
+          fill_solid(leds[strip], NUM_LEDS, CRGB(Rcolor, Gcolor, Bcolor));
+          int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, -20, 250);
+          if (level < 0) level = 0;
+          if (level > 250) level = 250;
+          FastLED.setBrightness(level);
+        }
+        return "BR";
+        break;
+      default:
+        return "Audio Color";
     }
   }
 
-  String audioLevelRainbowEffect(boolean initialize){
-    if (initialize){
-      return "Audio Level Rainbow";
-    } else {
-      static int hue = 0;
-      int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, NUM_LEDS / 2);
-      if (level < 0) level = 0;
-      if (level > NUM_LEDS / 2) level = NUM_LEDS / 2;
-      FastLED.clear();
-      for ( int i = 0; i < level; i++) {
-        leds[i + (NUM_LEDS / 2)] = CHSV(hue+i, 255,255);
-        leds[(NUM_LEDS / 2) - i] = CHSV(hue+i, 255,255);
-      }
-      hue ++;
-      return "";
+  String audioLevelRainbowEffect(char mode, bool strip){
+    static int hue = 0;
+    switch (mode){
+      case RUN:
+        {
+          int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, NUM_LEDS / 2);
+          if (level < 0) level = 0;
+          if (level > NUM_LEDS / 2) level = NUM_LEDS / 2;
+          for(int a = 0; a < NUM_LEDS; a++) {
+            leds[strip][a].nscale8(255-animationSpeed);
+          }
+          for ( int i = 0; i < level; i++) {
+            leds[strip][i + (NUM_LEDS / 2)] = CHSV(hue+i, 255,255);
+            leds[strip][(NUM_LEDS / 2) - i] = CHSV(hue+i, 255,255);
+          }
+          hue ++;
+        }
+        return "";
+        break;
+      case INITIALIZE:
+        hue = 0;
+        return "";
+        break;
+      case GET_NAME:
+        return "Audio Level Rainbow";
     }
   }
 #endif
+
+void powerOff(bool strip){
+  #ifdef BUILTIN_LED
+      digitalWrite(BUILTIN_LED, LED_OFF);
+  #endif
+  fill_solid(leds[strip], NUM_LEDS, CRGB::Black);
+}

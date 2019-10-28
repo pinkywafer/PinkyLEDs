@@ -4,7 +4,11 @@
 
 For setup information and more, please see [the wiki](https://github.com/pinkywafer/PinkyLEDs/wiki)
 
+Version 0.11.0 is a major refactor and breaks out all (except a few core effects) to a seperate .ino file.  An effect template is given at the end of the file to enable you to easily contribute your own effects.
+
 ## Features
+
+### Fade now implemented on power on/off and all effect changes.
 
 ### New from v0.10.0 Audio reactive effects
 
