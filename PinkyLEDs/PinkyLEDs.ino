@@ -518,16 +518,20 @@ void initializeEffect(){
 }
 
 int findEffect(String effectName){
-  for (int i = 0; i< noOfExternalEffects+noOfBuiltInEffects;i++){
-    if (i < noOfExternalEffects){
-      if (effectName == externalEffect[i](GET_NAME,0)){
-        return i;
-        break;
-      }
+  for (int i = 0; i <= noOfExternalEffects+noOfBuiltInEffects;i++){
+    if (i == noOfExternalEffects+noOfBuiltInEffects){
+      return 0;
     } else {
-      if (effectName == builtInEffect[i-noOfExternalEffects](GET_NAME,0)){
-        return i;
-        break;
+      if (i < noOfExternalEffects){
+        if (effectName == externalEffect[i](GET_NAME,0)){
+          return i;
+          break;
+        }
+      } else {
+        if (effectName == builtInEffect[i-noOfExternalEffects](GET_NAME,0)){
+          return i;
+          break;
+        }
       }
     }
   }
