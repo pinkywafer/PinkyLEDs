@@ -140,6 +140,7 @@ String (*builtInEffect[])(char,bool){
   #ifdef AUDIO_REACTIVE_PIN
     audioColorEffect,
     audioLevelRainbowEffect,
+    audioRandomFlash,
   #endif
   solidEffect
   #ifdef ENABLE_E131
@@ -1026,6 +1027,35 @@ String solidEffect(char mode, bool strip){
         break;
       case GET_NAME:
         return "Audio Level Rainbow";
+    }
+  }
+
+  String audioRandomFlash(char mode, bool strip){
+    static boolean flashed = false;
+    switch (mode){
+      case RUN:
+        {
+          int level = map(getAudioLevel(), AUDIO_LOW_LEVEL, AUDIO_HIGH_LEVEL, 0, 100);
+          for(int a = 0; a < NUM_LEDS; a++) {
+            leds[strip][a].nscale8(255-animationSpeed);
+          }
+          if (level>40){
+            if (!flashed){
+              fill_solid(leds[strip], NUM_LEDS, CHSV(random8(),255,255));
+              flashed = true;
+            }
+          } else {
+            flashed = false;
+          }
+        }
+        return "";
+        break;
+      case INITIALIZE:
+      flashed = false;
+        return "";
+        break;
+      case GET_NAME:
+        return "Audio Random Flash";
     }
   }
 #endif
