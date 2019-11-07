@@ -468,7 +468,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
         useStrip = !useStrip;
         Serial.println(useStrip);
         initializeEffect();
-        fadeDone = false;
+        if (String(topic) == mqttstate){
+          fadeDone = true;
+        } else {
+          fadeDone = false;
+        }
       }
     }
 
